@@ -267,7 +267,7 @@
             
             if (ws) ws.close();
              const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
-             ws = new WebSocket(`${wsProtocol}//intelligentcompiler.onrender.com/ws`);
+             ws = new WebSocket(`wss://intelligentcompiler.onrender.com/ws`);
 
             ws.onopen = () => {
                 ws.send(JSON.stringify({ lang, code }));
