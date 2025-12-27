@@ -13,6 +13,7 @@ import google.generativeai as genai
 app = FastAPI()
 
 # --- CONFIGURATION ---
+GEMINI_API_KEY = "AIzaSyA46TycFezdhxgCGO_6Wu0Q96GX59TKQbE"
 
 genai.configure(api_key=GEMINI_API_KEY)
 
