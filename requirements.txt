@@ -1,15 +1,4 @@
-# ---------- Core Web Framework ----------
-Flask==3.0.3
-
-# ---------- CORS Support ----------
-flask-cors==5.0.0
-
-# ---------- HTML Parsing ----------
-beautifulsoup4==4.12.3
-lxml==5.3.0
-# ---------- Production WSGI Server ----------
-gunicorn==23.0.0
-
-# ---------- Utility Libraries ----------
-requests==2.32.3
-regex==2024.9.11
+fastapi
+uvicorn
+pydantic
+google-generativeai
