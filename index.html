@@ -280,7 +280,7 @@
             };
             
             ws.onerror = () => { term.writeln("\x1b[31m\r\n[!] Connection Error\x1b[0m"); };
-            ws.onclose = () => { term.writeln("\x1b[2m\r\n[Process Finished]\x1b[0m"); };
+            
         }
 
         async function askAI() {
