@@ -266,6 +266,7 @@
             preview.style.display = "none";
             
             if (ws) ws.close();
+             const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
              ws = new WebSocket(`${wsProtocol}//intelligentcompiler.onrender.com/ws`);
 
             ws.onopen = () => {
@@ -328,6 +329,7 @@
                 fixBtn.innerHTML = `<i class="fa-solid fa-check"></i> Fixed!`;
                 fixBtn.style.background = "#3b82f6";
                 setTimeout(() => { fixBtn.style.display = "none"; }, 2000);
+                runCode();
             }
         }
     </script>
