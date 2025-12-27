@@ -1,210 +1,193 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from fastapi import FastAPI, WebSocket
+from fastapi.responses import FileResponse
+from pydantic import BaseModel
+import asyncio
 import subprocess
-import os
 import tempfile
-import traceback
+import uuid
+import os
+import shutil
 import re
+import google.generativeai as genai
 
-app = Flask(__name__)
-CORS(app)
+app = FastAPI()
 
-# ------------------------------
-# Helper Function: Run Commands Safely
-# ------------------------------
-def run_command(command, input_text=None):
+# --- CONFIGURATION ---
+
+genai.configure(api_key=GEMINI_API_KEY)
+
+class AnalyzeRequest(BaseModel):
+    code: str
+    lang: str
+    output: str
+
+@app.get("/")
+async def serve_ui():
+    return FileResponse("index.html")
+
+@app.post("/analyze")
+async def analyze_code(req: AnalyzeRequest):
+    if GEMINI_API_KEY == "PASTE_YOUR_GEMINI_API_KEY_HERE":
+        return {"suggestion": "Error: Configure API Key in app.py"}
+
+    prompt = f"""
+    You are an expert coding assistant.
+    
+    Language: {req.lang}
+    User Code:
+    ```
+    {req.code}
+    ```
+    execution Output:
+    {req.output}
+    
+    Task:
+    1. Analyze the output and code for errors or inefficiencies.
+    2. If there is an error, provide the **COMPLETE** fixed code (the entire file) in a markdown code block.
+    3. If there is no error, suggest a polished version of the code in a markdown code block.
+    4. Provide a brief explanation.
+
+    IMPORTANT: Put the code inside standard markdown backticks like ```python ... ``` so I can extract it programmatically.
+    """
+
     try:
-        result = subprocess.run(
-            command,
-            input=input_text.encode() if input_text else None,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            timeout=10
-        )
-        return result.stdout, result.stderr, result.returncode
-    except subprocess.TimeoutExpired:
-        return "", "⏱ Execution timed out.", 124
+        model = genai.GenerativeModel('gemini-2.5-flash') 
+        response = model.generate_content(prompt)
+        return {"suggestion": response.text}
     except Exception as e:
-        return "", f"⚠ Error: {str(e)}", 1
+        return {"suggestion": f"AI Error: {str(e)}"}
 
+async def run_interactive_process(ws: WebSocket, cmd, cwd=None):
+    proc = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        cwd=cwd,
+    )
 
-# ------------------------------
-# Root Route
-# ------------------------------
-@app.route('/')
-def home():
-    java_path = subprocess.getoutput("which java")
-    javac_path = subprocess.getoutput("which javac")
-    return jsonify({
-        "status": "✅ Backend Running Successfully",
-        "java": java_path or "Not found",
-        "javac": javac_path or "Not found"
-    })
+    async def stream_output():
+        try:
+            while True:
+                # Read small chunks for instant feedback
+                data = await proc.stdout.read(1024) 
+                if not data: break
+                await ws.send_text(data.decode(errors="replace"))
+        except Exception: pass
 
+    async def stream_input():
+        try:
+            while True:
+                msg = await ws.receive_json()
+                if "stdin" in msg and proc.stdin:
+                    proc.stdin.write((msg["stdin"] + "\n").encode())
+                    await proc.stdin.drain()
+        except asyncio.CancelledError: pass
+        except Exception: pass
 
-# ------------------------------
-# Analyzer Route
-# ------------------------------
-@app.route('/analyze', methods=['POST'])
-def analyze_code():
-    try:
-        data = request.get_json()
-        language = data.get("language", "").lower()
-        code = data.get("code", "").strip()
+    out_task = asyncio.create_task(stream_output())
+    in_task = asyncio.create_task(stream_input())
+    
+    await out_task
+    in_task.cancel()
+    
+    if proc.returncode is None: proc.kill()
 
-        if not code or not language:
-            return jsonify({"error": "⚠ Missing code or language."}), 400
+async def run_python(ws: WebSocket, code: str):
+    tmp = tempfile.gettempdir()
+    path = os.path.join(tmp, f"{uuid.uuid4().hex}.py")
+    with open(path, "w") as f: f.write(code)
+    try: await run_interactive_process(ws, ["python3", "-u", path])
+    finally: 
+        if os.path.exists(path): os.remove(path)
 
-        # ===============================
-        # FRONTEND LANGUAGES
-        # ===============================
+async def run_c(ws: WebSocket, code: str):
+    tmp = tempfile.gettempdir()
+    src = os.path.join(tmp, f"{uuid.uuid4().hex}.c")
+    exe = os.path.join(tmp, f"{uuid.uuid4().hex}_c_bin")
+    with open(src, "w") as f: f.write(code)
+    proc = await asyncio.create_subprocess_exec("gcc", src, "-o", exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    out, _ = await proc.communicate()
+    if out: await ws.send_text(out.decode(errors="replace"))
+    if proc.returncode != 0: 
+        if os.path.exists(src): os.remove(src)
+        return
+    try: await run_interactive_process(ws, ["stdbuf", "-o0", "-e0", exe])
+    finally:
+        for p in (src, exe): 
+            if os.path.exists(p): os.remove(p)
 
-        # ---------- HTML ----------
-        if language == "html":
-            from bs4 import BeautifulSoup
-            try:
-                soup = BeautifulSoup(code, "html.parser")
-                errors = []
+async def run_cpp(ws: WebSocket, code: str):
+    tmp = tempfile.gettempdir()
+    src = os.path.join(tmp, f"{uuid.uuid4().hex}.cpp")
+    exe = os.path.join(tmp, f"{uuid.uuid4().hex}_cpp_bin")
+    with open(src, "w") as f: f.write(code)
+    proc = await asyncio.create_subprocess_exec("g++", src, "-o", exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    out, _ = await proc.communicate()
+    if out: await ws.send_text(out.decode(errors="replace"))
+    if proc.returncode != 0:
+        if os.path.exists(src): os.remove(src)
+        return
+    try: await run_interactive_process(ws, [exe])
+    finally:
+        for p in (src, exe):
+            if os.path.exists(p): os.remove(p)
 
-                # Basic HTML validation
-                if not soup.find("html"):
-                    errors.append("⚠ Missing <html> tag.")
-                if not soup.find("head"):
-                    errors.append("⚠ Missing <head> tag.")
-                if not soup.find("body"):
-                    errors.append("⚠ Missing <body> tag.")
+async def run_java(ws: WebSocket, code: str):
+    tmp_dir = os.path.join(tempfile.gettempdir(), f"java_{uuid.uuid4().hex}")
+    os.makedirs(tmp_dir, exist_ok=True)
+    
+    # 1. Remove 'package' declarations (Causes errors in single-file runs)
+    code = re.sub(r'^\s*package\s+[\w.]+;', '', code, flags=re.MULTILINE)
 
-                if errors:
-                    return jsonify({
-                        "language": "html",
-                        "output": "",
-                        "error": "\n".join(errors),
-                        "status": "error"
-                    })
+    # 2. Robust Class Name Extraction
+    # Look for 'public class Name' first (most important)
+    match = re.search(r'public\s+class\s+(\w+)', code)
+    if not match:
+        # Fallback: Look for any 'class Name'
+        match = re.search(r'class\s+(\w+)', code)
+    
+    class_name = match.group(1) if match else "Main"
+    
+    src = os.path.join(tmp_dir, f"{class_name}.java")
+    
+    with open(src, "w") as f: f.write(code)
+    
+    # Compile
+    proc = await asyncio.create_subprocess_exec(
+        "javac", f"{class_name}.java",
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=tmp_dir
+    )
+    out, _ = await proc.communicate()
+    if out: await ws.send_text(out.decode(errors="replace"))
+    
+    if proc.returncode != 0:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+        return
+        
+    # Run
+    try: await run_interactive_process(ws, ["java", class_name], cwd=tmp_dir)
+    finally: shutil.rmtree(tmp_dir, ignore_errors=True)
 
-                # Valid HTML → send preview only
-                return jsonify({
-                    "language": "html",
-                    "output": "",
-                    "error": "",
-                    "status": "success",
-                    "preview": code
-                })
+async def run_js(ws: WebSocket, code: str):
+    tmp = tempfile.gettempdir()
+    src = os.path.join(tmp, f"{uuid.uuid4().hex}.js")
+    with open(src, "w") as f: f.write(code)
+    try: await run_interactive_process(ws, ["node", src])
+    finally: 
+        if os.path.exists(src): os.remove(src)
 
-            except Exception as e:
-                return jsonify({
-                    "language": "html",
-                    "output": "",
-                    "error": f"❌ HTML parsing error:\n{str(e)}",
-                    "status": "error"
-                })
+@app.websocket("/ws")
+async def ws_handler(ws: WebSocket):
+    await ws.accept()
+    first = await ws.receive_json()
+    lang = first.get("lang", "python").lower()
+    code = first.get("code", "")
 
-        # ---------- JAVASCRIPT ----------
-        if language in ["js", "javascript"]:
-            with tempfile.TemporaryDirectory() as temp_dir:
-                js_path = os.path.join(temp_dir, "main.js")
-                with open(js_path, "w") as f:
-                    f.write(code)
-
-                _, stderr, status = run_command(["node", "--check", js_path])
-                if status != 0:
-                    return jsonify({
-                        "language": "javascript",
-                        "output": "",
-                        "error": f"❌ JS syntax error:\n{stderr}",
-                        "status": "error"
-                    })
-
-                stdout, stderr, exec_status = run_command(["node", js_path])
-                return jsonify({
-                    "language": "javascript",
-                    "output": stdout.strip(),
-                    "error": stderr.strip(),
-                    "status": "success" if exec_status == 0 else "error"
-                })
-
-        # ---------- HTML + JS ----------
-        if "<script>" in code and "</script>" in code:
-            return jsonify({
-                "language": "html+js",
-                "output": "",
-                "error": "",
-                "status": "success",
-                "preview": code
-            })
-
-        # ===============================
-        # BACKEND LANGUAGES
-        # ===============================
-        with tempfile.TemporaryDirectory() as temp_dir:
-            os.chdir(temp_dir)
-            stdout = stderr = ""
-            code_status = 0
-
-            # ---- Python ----
-            if language == "python":
-                with open("main.py", "w") as f:
-                    f.write(code)
-                stdout, stderr, code_status = run_command(["python3", "main.py"])
-
-            # ---- C ----
-            elif language == "c":
-                with open("main.c", "w") as f:
-                    f.write(code)
-                _, compile_err, compile_status = run_command(["gcc", "main.c", "-o", "main"])
-                if compile_status != 0:
-                    return jsonify({"error": compile_err}), 400
-                stdout, stderr, code_status = run_command(["./main"])
-
-            # ---- C++ ----
-            elif language == "cpp":
-                with open("main.cpp", "w") as f:
-                    f.write(code)
-                _, compile_err, compile_status = run_command(["g++", "main.cpp", "-o", "main"])
-                if compile_status != 0:
-                    return jsonify({"error": compile_err}), 400
-                stdout, stderr, code_status = run_command(["./main"])
-
-            # ---- Java (Dynamic Class + Syntax Check) ----
-            elif language == "java":
-                match = re.search(r'public\s+class\s+(\w+)', code)
-                class_name = match.group(1) if match else "Main"
-                file_name = f"{class_name}.java"
-
-                with open(file_name, "w") as f:
-                    f.write(code)
-
-                _, compile_err, compile_status = run_command(["javac", file_name])
-                if compile_status != 0:
-                    return jsonify({
-                        "language": "java",
-                        "output": "",
-                        "error": f"❌ Java syntax error:\n{compile_err}",
-                        "status": "error"
-                    })
-
-                stdout, stderr, code_status = run_command(["java", "-cp", ".", class_name])
-
-            else:
-                return jsonify({"error": f"❌ Unsupported language: {language}"}), 400
-
-        return jsonify({
-            "language": language,
-            "output": stdout.strip(),
-            "error": stderr.strip(),
-            "status": "success" if code_status == 0 else "error"
-        })
-
-    except Exception as e:
-        print("❌ Exception:", traceback.format_exc())
-        return jsonify({"error": str(e)}), 500
-
-
-# ------------------------------
-# Start Flask Server
-# ------------------------------
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    print(f"🚀 Starting Flask backend on port {port} ...")
-    app.run(host='0.0.0.0', port=port, debug=True)
+    if lang == "python": await run_python(ws, code)
+    elif lang == "c": await run_c(ws, code)
+    elif lang in ("cpp", "c++"): await run_cpp(ws, code)
+    elif lang == "java": await run_java(ws, code)
+    elif lang in ("js", "javascript"): await run_js(ws, code)
+    elif lang == "html": await ws.send_text("HTML is rendered locally.")
+    else: await ws.send_text(f"Unknown language: {lang}")
