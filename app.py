@@ -28,8 +28,6 @@ async def serve_ui():
 
 @app.post("/analyze")
 async def analyze_code(req: AnalyzeRequest):
-    if GEMINI_API_KEY == "AIzaSyA46TycFezdhxgCGO_6Wu0Q96GX59TKQbE":
-        return {"suggestion": "Error: Configure API Key in app.py"}
 
     prompt = f"""
     You are an expert coding assistant.
