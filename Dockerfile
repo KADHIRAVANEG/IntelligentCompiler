@@ -21,6 +21,7 @@ COPY . /app
 # ------------------ Install Python Dependencies ------------------
 RUN pip3 install --upgrade pip setuptools wheel
 RUN pip3 install -r requirements.txt
+RUN pip3 install websockets
 
 # ------------------ Expose Port ------------------
 EXPOSE 10000
