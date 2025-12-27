@@ -266,7 +266,7 @@
             preview.style.display = "none";
             
             if (ws) ws.close();
-            ws = new WebSocket(`ws://${location.host}/ws`);
+             ws = new WebSocket(`${wsProtocol}//intelligentcompiler.onrender.com/ws`);
 
             ws.onopen = () => {
                 ws.send(JSON.stringify({ lang, code }));
