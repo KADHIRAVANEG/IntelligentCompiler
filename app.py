@@ -13,8 +13,11 @@ import google.generativeai as genai
 app = FastAPI()
 
 # --- CONFIGURATION ---
-GEMINI_API_KEY = "AIzaSyAOH_xssZWLN2OSTag17qEgkhSvbZVDA3w"
 
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+if not GEMINI_API_KEY:
+    raise RuntimeError("GEMINI_API_KEY is missing")
 genai.configure(api_key=GEMINI_API_KEY)
 
 class AnalyzeRequest(BaseModel):
