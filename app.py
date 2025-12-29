@@ -53,7 +53,7 @@ async def analyze_code(req: AnalyzeRequest):
     """
 
     try:
-        model = genai.GenerativeModel('gemini-2.5-flash') 
+        model = genai.GenerativeModel("gemini-2.5-flash") 
         response = model.generate_content(prompt)
         return {"suggestion": response.text}
     except Exception as e:
