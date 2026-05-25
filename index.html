@@ -3,24 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🖥️ Intelligent Compiler</title>
-    
+    <title>Intelligent Compiler</title>
+   
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+   
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
     <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
-
     <style>
         :root {
-            --bg-dark: #0f172a; --bg-panel: #1e293b; --bg-editor: #1e1e1e; /* VS Code Dark */
-            --accent-primary: #3b82f6; --accent-secondary: #10b981; --accent-ai: #8b5cf6;
-            --text-main: #e2e8f0; --text-muted: #94a3b8; --border: #334155; --radius: 12px;
+            --bg-dark: #0f172a;
+            --bg-panel: #1e293b;
+            --bg-editor: #1e1e1e;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #10b981;
+            --accent-ai: #8b5cf6;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border: #334155;
         }
         * { box-sizing: border-box; outline: none; }
         body {
@@ -28,81 +32,145 @@
             margin: 0; padding: 20px; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
         }
         header {
-            display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px;
-            border-bottom: 1px solid var(--border); margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center; 
+            padding-bottom: 15px; border-bottom: 1px solid var(--border); margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
-        h2 { margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
-        .toolbar { display: flex; gap: 10px; align-items: center; }
-        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-text {
+            font-family: 'Fira Code', monospace;
+            font-weight: 700;
+            font-size: 1.2rem;
+            line-height: 1.2;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-ai));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+        }
+        .logo-text small {
+            font-size: 0.7rem;
+            display: block;
+            color: var(--text-muted);
+            background: none;
+            -webkit-background-clip: unset;
+            background-clip: unset;
+        }
+        h2 { 
+            margin: 0; font-size: 1.35rem; font-weight: 700; 
+            display: none;
+        }
+        .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+       
         .select-wrapper { position: relative; }
         .select-wrapper i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--accent-primary); z-index: 10; pointer-events: none; }
         select {
             appearance: none; background: var(--bg-panel); color: white; border: 1px solid var(--border);
             padding: 10px 15px 10px 35px; border-radius: 8px; cursor: pointer;
         }
-
         button {
             border: none; padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer;
             display: flex; align-items: center; gap: 8px; font-size: 0.9rem; transition: 0.2s;
         }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
         .btn-run { background: var(--accent-secondary); color: #064e3b; }
-        .btn-run:hover { background: #34d399; }
-        
+        .btn-run:hover:not(:disabled) { background: #34d399; }
+       
         .btn-ai-trigger { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
-        .btn-ai-trigger:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-ai-trigger:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
 
         #header-fix-btn {
             background: #10b981; color: #022c22; padding: 5px 15px; border-radius: 6px; font-size: 0.8rem;
             display: none; animation: fadeIn 0.3s ease; margin-left: auto;
         }
-        #header-fix-btn:hover { background: #34d399; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        #header-fix-btn:hover:not(:disabled) { background: #34d399; }
 
+        #view-new-tab-btn, #copy-output-btn, #download-code-btn {
+            background: #64748b; color: white; padding: 10px 18px; font-size: 0.9rem;
+        }
+        #view-new-tab-btn:hover:not(:disabled), #copy-output-btn:hover:not(:disabled), #download-code-btn:hover:not(:disabled) { 
+            background: #475569; 
+        }
+        #download-code-btn {
+            background: var(--accent-primary);
+        }
+        #download-code-btn:hover:not(:disabled) { background: #2563eb; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        
         .main-container {
             display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
             gap: 15px; flex: 1; min-height: 0;
         }
         .panel {
-            background: var(--bg-panel); border-radius: var(--radius); border: 1px solid var(--border);
+            background: var(--bg-panel); border-radius: 12px; border: 1px solid var(--border);
             display: flex; flex-direction: column; overflow: hidden;
         }
         .panel-header {
             background: rgba(0,0,0,0.2); padding: 8px 15px; font-size: 0.85rem; font-weight: 600;
             color: var(--text-muted); border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; gap: 10px;
+            display: flex; align-items: center; gap: 10px; justify-content: space-between;
         }
         .editor-area { grid-column: 1 / -1; grid-row: 1; background: var(--bg-editor); }
         .terminal-area { grid-column: 1; grid-row: 2; background: black; }
         .ai-area { grid-column: 2; grid-row: 2; border: 1px solid var(--accent-ai); }
-
-        /* Monaco Container */
-        #monaco-container {
-            width: 100%;
-            height: 100%;
-        }
-
-        /* XTerm Container */
-        #terminal {
-            flex: 1; width: 100%; height: 100%; padding: 10px; overflow: hidden;
-        }
-        .xterm-viewport::-webkit-scrollbar { width: 10px; }
-        .xterm-viewport::-webkit-scrollbar-track { background: #000; }
-        .xterm-viewport::-webkit-scrollbar-thumb { background: #333; border-radius: 5px; }
-
-        div#ai-out { 
-            flex: 1; padding: 15px; margin: 0; overflow-y: auto; 
+        #monaco-container { width: 100%; height: 100%; }
+        #terminal { flex: 1; width: 100%; height: 100%; padding: 10px; overflow: hidden; }
+        div#ai-out {
+            flex: 1; padding: 15px; margin: 0; overflow-y: auto;
             font-family: 'Inter', sans-serif; color: #c4b5fd; line-height: 1.6; background: #13111c;
         }
         #ai-out code { background: rgba(255,255,255,0.1); padding: 2px 5px; border-radius: 4px; font-family: 'Fira Code'; color: #fff; }
-        #ai-out pre { background: #0b0b11; padding: 10px; border-radius: 8px; border: 1px solid #333; }
-
+        #ai-out pre { background: #0b0b11; padding: 10px; border-radius: 8px; border: 1px solid #333; overflow-x: auto; }
         #preview { width: 100%; height: 100%; background: white; border: none; display: none; }
+        
+        .spinner {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+            }
+            .editor-area { grid-column: 1; grid-row: 1; min-height: 300px; }
+            .terminal-area { grid-column: 1; grid-row: 2; min-height: 200px; }
+            .ai-area { grid-column: 1; grid-row: 3; min-height: 200px; }
+            header { flex-direction: column; align-items: stretch; }
+            .toolbar { justify-content: center; }
+        }
+        
+        .loading-pulse {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
     </style>
 </head>
 <body>
-
     <header>
-        <h2><i class="fa-solid fa-terminal"></i>Intelligent Compiler</h2>
+        <div class="logo-container">
+            <div class="logo-text">
+                INTELLIGENT<br>
+                <small>COMPILER</small>
+            </div>
+        </div>
+        
         <div class="toolbar">
             <div class="select-wrapper">
                 <i class="fa-solid fa-code"></i>
@@ -112,14 +180,17 @@
                     <option value="cpp">C++</option>
                     <option value="java">Java</option>
                     <option value="js">JavaScript</option>
-                    <option value="html">HTML</option> 
+                    <option value="html">HTML</option>
                 </select>
             </div>
-            <button class="btn-run" onclick="runCode()">
+            <button class="btn-run" onclick="runCode()" id="run-btn">
                 <i class="fa-solid fa-play"></i> Run Code
             </button>
-            <button class="btn-ai-trigger" onclick="askAI()">
+            <button class="btn-ai-trigger" onclick="askAI()" id="ai-btn">
                 <i class="fa-solid fa-wand-magic-sparkles"></i> Get Suggestions
+            </button>
+            <button id="download-code-btn" onclick="downloadCode()">
+                <i class="fa-solid fa-download"></i> Download Code
             </button>
         </div>
     </header>
@@ -129,15 +200,25 @@
             <div class="panel-header"><span><i class="fa-regular fa-file-code"></i> Editor</span></div>
             <div id="monaco-container"></div>
         </div>
-        
+       
         <div class="panel terminal-area">
-            <div class="panel-header"><span><i class="fa-solid fa-desktop"></i> Terminal Output</span></div>
+            <div class="panel-header">
+                <span><i class="fa-solid fa-desktop"></i> Terminal Output</span>
+                <div style="display: flex; gap: 8px;">
+                    <button id="copy-output-btn" onclick="copyOutput()">
+                        <i class="fa-solid fa-copy"></i> Copy Output
+                    </button>
+                    <button id="view-new-tab-btn" onclick="viewInNewTab()">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> View in New Tab
+                    </button>
+                </div>
+            </div>
             <div style="flex: 1; position: relative; overflow: hidden; display:flex; flex-direction:column;">
                 <div id="terminal"></div>
                 <iframe id="preview"></iframe>
             </div>
         </div>
-        
+       
         <div class="panel ai-area">
             <div class="panel-header" style="background: linear-gradient(90deg, rgba(139,92,246,0.1), transparent);">
                 <span style="color: #c4b5fd;"><i class="fa-solid fa-robot"></i> Assistant</span>
@@ -155,66 +236,200 @@
     </div>
 
     <script>
-        let ws;
-        let editor; // Monaco Instance
-        let term; // XTerm Instance
-        let fitAddon;
-        let pendingAiFix = ""; 
-        let outputBuffer = ""; 
-        let inputBuffer = "";
-
-        const boilerplate = {
-            python: `name = input("Enter your name: ")\nprint(f"Hello, {name}!")`,
-            c: `#include <stdio.h>\n\nint main() {\n    char name[50];\n    printf("Enter name: ");\n    scanf("%s", name);\n    printf("Hello, %s!\\n", name);\n    return 0;\n}`,
-            cpp: `#include <iostream>\nusing namespace std;\n\nint main() {\n    string name;\n    cout << "Enter name: ";\n    cin >> name;\n    cout << "Hello, " << name << "!" << endl;\n    return 0;\n}`,
-            java: `import java.util.Scanner;\n\n// You can name your class anything!\npublic class MyAwesomeApp {\n    public static void main(String[] args) {\n        Scanner s = new Scanner(System.in);\n        System.out.print("Enter name: ");\n        String name = s.nextLine();\n        System.out.println("Hello " + name + "!");\n    }\n}`,
-            js: `console.log("Hello from JavaScript!");`,
-            html: `<!DOCTYPE html>\n<html>\n<body>\n    <h1>Hello HTML</h1>\n</body>\n</html>`
-        };
-
-        // --- 1. Load Monaco Editor ---
-        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }});
+        // Configuration
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const API_BASE = isLocalhost 
+            ? 'http://localhost:5000' 
+            : 'https://intelligentcompiler.onrender.com';
         
+        // Global variables
+        let ws = null;
+        let editor = null;
+        let term = null;
+        let fitAddon = null;
+        let pendingAiFix = "";
+        let outputBuffer = "";
+        let inputBuffer = "";
+        
+        // Boilerplate templates
+const boilerplate = {
+    python: `print("=" * 50)
+print("👨‍💻 Developer: JOKER53 (KADHIRAVAN EG)")
+print("📚 Cyber Security Student")
+print("💻 Building Intelligent Compiler")
+print("=" * 50)
+print()
+name = input("Enter your name: ")
+print(f"Hello, {name}!")`,
+
+    c: `#include <stdio.h>
+
+int main() {
+    printf("==================================================\\n");
+    printf("👨‍💻 Developer: JOKER53 (KADHIRAVAN EG)\\n");
+    printf("📚 Cyber Security Student\\n");
+    printf("💻 Building Intelligent Compiler\\n");
+    printf("==================================================\\n\\n");
+    
+    char name[50];
+    printf("Enter name: ");
+    scanf("%s", name);
+    printf("Hello, %s!\\n", name);
+    return 0;
+}`,
+
+    cpp: `#include <iostream>
+#include <string>
+using namespace std;
+
+int main() {
+    cout << "==================================================" << endl;
+    cout << "👨‍💻 Developer: JOKER53 (KADHIRAVAN EG)" << endl;
+    cout << "📚 Cyber Security Student" << endl;
+    cout << "💻 Building Intelligent Compiler" << endl;
+    cout << "==================================================" << endl << endl;
+    
+    string name;
+    cout << "Enter name: ";
+    cin >> name;
+    cout << "Hello, " << name << "!" << endl;
+    return 0;
+}`,
+
+    java: `import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("==================================================");
+        System.out.println("👨‍💻 Developer: JOKER53 (KADHIRAVAN EG)");
+        System.out.println("📚 Cyber Security Student");
+        System.out.println("💻 Building Intelligent Compiler");
+        System.out.println("==================================================");
+        System.out.println();
+        
+        Scanner s = new Scanner(System.in);
+        System.out.print("Enter name: ");
+        String name = s.nextLine();
+        System.out.println("Hello " + name + "!");
+    }
+}`,
+
+    js: `console.log("==================================================");
+console.log("👨‍💻 Developer: JOKER53 (KADHIRAVAN EG)");
+console.log("📚 Cyber Security Student");
+console.log("💻 Building Intelligent Compiler");
+console.log("==================================================");
+console.log();
+
+console.log("Hello from JavaScript!");
+console.log("Try adding more JavaScript code here");`,
+
+    html: `<!DOCTYPE html>
+<html>
+<head>
+    <title>Intelligent Compiler</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .developer { background: linear-gradient(135deg, #3b82f6, #8b5cf6); padding: 15px; border-radius: 10px; color: white; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="developer">
+        <h2>👨‍💻 Developer: JOKER53 (KADHIRAVAN EG)</h2>
+        <p>📚 Cyber Security Student | 💻 Building Intelligent Compiler</p>
+    </div>
+    <h1>Hello HTML</h1>
+    <p>This is your HTML preview</p>
+</body>
+</html>`
+};
+
+        // Initialize Monaco Editor
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }});
+       
         require(['vs/editor/editor.main'], function() {
             editor = monaco.editor.create(document.getElementById('monaco-container'), {
                 value: boilerplate.python,
                 language: 'python',
-                theme: 'vs-dark', // Matches UI
+                theme: 'vs-dark',
                 automaticLayout: true,
                 fontSize: 14,
-                minimap: { enabled: false }
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                wordWrap: 'on'
+            });
+            
+            // SAVE LOCAL STORAGE
+            editor.onDidChangeModelContent(() => {
+                saveCodeToLocalStorage();
             });
         });
 
+     // LOCAL STORAGE
+        function saveCodeToLocalStorage() {
+            if (editor) {
+                const lang = document.getElementById("lang").value;
+                localStorage.setItem(`code_${lang}`, editor.getValue());
+            }
+        }
+        
+        function loadCodeFromLocalStorage() {
+            if (editor) {
+                const lang = document.getElementById("lang").value;
+                const savedCode = localStorage.getItem(`code_${lang}`);
+                if (savedCode) {
+                    editor.setValue(savedCode);
+                } else {
+                    editor.setValue(boilerplate[lang]);
+                }
+            }
+        }
+
+     
         window.onload = function() {
-            // --- 2. Setup XTerm ---
             term = new Terminal({
                 cursorBlink: true,
                 theme: { background: '#000000', foreground: '#4ade80', cursor: '#ffffff' },
-                fontSize: 14, fontFamily: "'Fira Code', monospace", convertEol: true,
+                fontSize: 14,
+                fontFamily: "'Fira Code', monospace",
+                convertEol: true,
+                scrollback: 1000
             });
             fitAddon = new FitAddon.FitAddon();
             term.loadAddon(fitAddon);
             term.open(document.getElementById('terminal'));
             fitAddon.fit();
-            term.writeln("\x1b[2mWelcome to Intelligent Compiler Terminal\x1b[0m");
-            
-            window.addEventListener('resize', () => fitAddon.fit());
+            term.writeln("\x1b[2m═══════════════════════════════════════════\x1b[0m");
+            term.writeln("\x1b[2m  Intelligent Compiler Terminal Ready\x1b[0m");
+            term.writeln("\x1b[2m═══════════════════════════════════════════\x1b[0m");
+            term.writeln("");
+           
+            window.addEventListener('resize', () => {
+                if (fitAddon) fitAddon.fit();
+            });
 
-            // Handle Typing
             term.onData(e => {
-                if (!ws || ws.readyState !== 1) return;
+                if (!ws || ws.readyState !== WebSocket.OPEN) return;
                 switch (e) {
-                    case '\r': // Enter
+                    case '\r':
                         term.write('\r\n');
-                        ws.send(JSON.stringify({ stdin: inputBuffer }));
+                        if (ws && ws.readyState === WebSocket.OPEN) {
+                            ws.send(JSON.stringify({ stdin: inputBuffer }));
+                        }
                         outputBuffer += inputBuffer + "\n";
                         inputBuffer = "";
                         break;
                     case '\u007F': // Backspace
                         if (inputBuffer.length > 0) {
-                            inputBuffer = inputBuffer.substr(0, inputBuffer.length - 1);
+                            inputBuffer = inputBuffer.slice(0, -1);
                             term.write('\b \b');
+                        }
+                        break;
+                    case '\u0003': // Ctrl+C
+                        term.write('^C\r\n');
+                        inputBuffer = "";
+                        if (ws && ws.readyState === WebSocket.OPEN) {
+                            ws.send(JSON.stringify({ stdin: "__INTERRUPT__" }));
                         }
                         break;
                     default:
@@ -224,113 +439,217 @@
                         }
                 }
             });
+
+            loadCodeFromLocalStorage();
+            updateNewTabButton();
         };
 
         function changeLanguage() {
             const lang = document.getElementById("lang").value;
-            // Map dropdown value to Monaco Language ID
-            const monacoLangMap = { 
-                "python": "python", "c": "c", "cpp": "cpp", 
-                "java": "java", "js": "javascript", "html": "html" 
+            const monacoLangMap = {
+                "python": "python", "c": "c", "cpp": "cpp",
+                "java": "java", "js": "javascript", "html": "html"
             };
-            
+           
             if (editor) {
                 monaco.editor.setModelLanguage(editor.getModel(), monacoLangMap[lang]);
-                editor.setValue(boilerplate[lang]);
+                loadCodeFromLocalStorage();
+            }
+            updateNewTabButton();
+        }
+
+        function updateNewTabButton() {
+            const lang = document.getElementById("lang").value;
+            const btn = document.getElementById("view-new-tab-btn");
+            if (btn) {
+                btn.style.display = (lang === "html") ? "flex" : "none";
             }
         }
 
         function runCode() {
+            const runBtn = document.getElementById("run-btn");
             const terminalDiv = document.getElementById("terminal");
             const preview = document.getElementById("preview");
             const fixBtn = document.getElementById("header-fix-btn");
-            
-            // Get value from Monaco
+           
             const code = editor.getValue();
             const lang = document.getElementById("lang").value;
-
+            
             fixBtn.style.display = "none";
             pendingAiFix = "";
-            outputBuffer = ""; 
+            outputBuffer = "";
             inputBuffer = "";
-            term.reset();
+            
+            if (term && !term._isOpen) {
+                term.clear();
+            } else if (term) {
+                term.clear();
+            }
 
+            // Handle HTML preview
             if (lang === "html") {
-                terminalDiv.style.display = "none"; 
-                preview.style.display = "block"; 
+                terminalDiv.style.display = "none";
+                preview.style.display = "block";
                 preview.srcdoc = code;
                 return;
             }
-
-            terminalDiv.style.display = "block"; 
+            
+            terminalDiv.style.display = "block";
             preview.style.display = "none";
             
-            if (ws) ws.close();
-             const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
-             ws = new WebSocket(`wss://intelligentcompiler.onrender.com/ws`);
-
-            ws.onopen = () => {
-                ws.send(JSON.stringify({ lang, code }));
-                fitAddon.fit();
-            };
+            // Close existing connection
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            }
             
-            ws.onmessage = (e) => { 
-                outputBuffer += e.data;
-                term.write(e.data);
-            };
+            runBtn.disabled = true;
+            runBtn.innerHTML = '<i class="fa-solid fa-spinner spinner"></i> Running...';
             
-            ws.onerror = () => { term.writeln("\x1b[31m\r\n[!] Connection Error\x1b[0m"); };
+            const wsUrl = isLocalhost 
+                ? `ws://localhost:5000/ws`
+                : `wss://intelligentcompiler.onrender.com/ws`;
             
+            try {
+                ws = new WebSocket(wsUrl);
+                
+                ws.onopen = () => {
+                    ws.send(JSON.stringify({ lang, code }));
+                    if (fitAddon) fitAddon.fit();
+                    runBtn.disabled = false;
+                    runBtn.innerHTML = '<i class="fa-solid fa-play"></i> Run Code';
+                };
+               
+                ws.onmessage = (e) => {
+                    outputBuffer += e.data;
+                    term.write(e.data);
+                };
+               
+                ws.onerror = () => { 
+                    runBtn.disabled = false;
+                    runBtn.innerHTML = '<i class="fa-solid fa-play"></i> Run Code';
+                };
+                
+                ws.onclose = () => {
+                    runBtn.disabled = false;
+                    runBtn.innerHTML = '<i class="fa-solid fa-play"></i> Run Code';
+                };
+            } catch (err) {
+                runBtn.disabled = false;
+                runBtn.innerHTML = '<i class="fa-solid fa-play"></i> Run Code';
+            }
         }
 
         async function askAI() {
             const aiOut = document.getElementById("ai-out");
             const fixBtn = document.getElementById("header-fix-btn");
-            const code = editor.getValue(); // Get from Monaco
+            const aiBtn = document.getElementById("ai-btn");
+            const code = editor.getValue();
             const lang = document.getElementById("lang").value;
-            const output = outputBuffer || "No Output"; 
+            const output = outputBuffer || "No output generated";
 
+            aiBtn.disabled = true;
+            aiBtn.innerHTML = '<i class="fa-solid fa-spinner spinner"></i> Analyzing...';
+            
             aiOut.innerHTML = `
                 <div style="text-align:center; margin-top:40px; color: #c4b5fd;">
                     <i class="fa-solid fa-circle-notch fa-spin fa-2x"></i>
-                    <p style="margin-top:10px;">Analyzing...</p>
+                    <p style="margin-top:10px;">Analyzing your code with AI...</p>
                 </div>
             `;
 
             try {
-                const response = await fetch("/analyze", {
-                    method: "POST", headers: { "Content-Type": "application/json" },
+                const response = await fetch(`${API_BASE}/analyze`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ code, lang, output })
                 });
-
-                const data = await response.json();
-                const aiText = data.suggestion;
                 
-                const match = aiText.match(/```(?:\w+)?\n([\s\S]*?)```/);
-                
-                if (match && match[1]) {
-                    pendingAiFix = match[1];
-                    fixBtn.style.display = "block"; 
-                    fixBtn.innerHTML = `<i class="fa-solid fa-check-double"></i> Apply Fix`;
-                    fixBtn.style.background = "#10b981";
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
                 }
-
-                aiOut.innerHTML = marked.parse(aiText);
+                
+                const data = await response.json();
+                let aiText = data.suggestion || data.message || "No suggestion available";
+                
+                // Extract code fix from markdown
+                const codeBlockRegex = /```(?:\w+)?\n([\s\S]*?)```/g;
+                const matches = [...aiText.matchAll(codeBlockRegex)];
+               
+                if (matches.length > 0 && matches[0][1]) {
+                    pendingAiFix = matches[0][1].trim();
+                    fixBtn.style.display = "block";
+                    fixBtn.innerHTML = `<i class="fa-solid fa-check-double"></i> Apply Fix (${matches.length} suggestion${matches.length > 1 ? 's' : ''})`;
+                    fixBtn.style.background = "#10b981";
+                } else {
+                    pendingAiFix = "";
+                }
+                
+                // Sanitize and render markdown
+                const cleanHtml = DOMPurify.sanitize(marked.parse(aiText));
+                aiOut.innerHTML = cleanHtml;
                 
             } catch (err) {
-                aiOut.innerHTML = `<span style="color:#f87171">Error: ${err}</span>`;
+                aiOut.innerHTML = `
+                    <div style="color:#f87171; text-align:center; padding:20px;">
+                        <i class="fa-solid fa-exclamation-triangle fa-2x"></i>
+                        <p style="margin-top:10px;"><strong>Error analyzing code</strong></p>
+                        <p style="font-size:0.9rem;">${err.message}</p>
+                    </div>
+                `;
+            } finally {
+                aiBtn.disabled = false;
+                aiBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Get Suggestions';
             }
         }
 
         function applyFix() {
-            if (pendingAiFix) {
-                editor.setValue(pendingAiFix); // Set to Monaco
+            if (pendingAiFix && editor) {
+                editor.setValue(pendingAiFix);
                 const fixBtn = document.getElementById("header-fix-btn");
-                fixBtn.innerHTML = `<i class="fa-solid fa-check"></i> Fixed!`;
+                const originalText = fixBtn.innerHTML;
+                fixBtn.innerHTML = `<i class="fa-solid fa-check"></i> Applied!`;
                 fixBtn.style.background = "#3b82f6";
-                setTimeout(() => { fixBtn.style.display = "none"; }, 2000);
-                runCode();
+                setTimeout(() => { 
+                    fixBtn.style.display = "none";
+                    fixBtn.innerHTML = originalText;
+                }, 2000);
+                saveCodeToLocalStorage();
             }
+        }
+
+        function downloadCode() {
+            const code = editor.getValue();
+            const lang = document.getElementById("lang").value;
+            const extensions = { 
+                python: "py", c: "c", cpp: "cpp", 
+                java: "java", js: "js", html: "html" 
+            };
+            const ext = extensions[lang] || "txt";
+            const blob = new Blob([code], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `code.${ext}`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function copyOutput() {
+            if (!outputBuffer.trim()) {
+                return;
+            }
+            navigator.clipboard.writeText(outputBuffer);
+        }
+
+        function viewInNewTab() {
+            const code = editor.getValue();
+            if (!code.trim()) {
+                return;
+            }
+            const blob = new Blob([code], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
         }
     </script>
 </body>
