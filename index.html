@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intelligent Compiler</title>
+    <title>𝕴𝖓𝖙𝖊𝖑𝖑𝖎𝖌𝖊𝖓𝖙 𝕮𝖔𝖒𝖕𝖎𝖑𝖊𝖗</title>
    
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -236,13 +236,13 @@
     </div>
 
     <script>
-        // Configuration
+        
         const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
         const API_BASE = isLocalhost 
             ? 'http://localhost:5000' 
             : 'https://intelligentcompiler.onrender.com';
         
-        // Global variables
+        
         let ws = null;
         let editor = null;
         let term = null;
@@ -251,7 +251,7 @@
         let outputBuffer = "";
         let inputBuffer = "";
         
-        // Boilerplate templates
+        // 𐌁Ꝋ𐌉𐌋𐌄𐌓𐌐𐌋𐌀𐌕𐌄 𐌕𐌄𐌌𐌐𐌋𐌀𐌕𐌄𐌔
 const boilerplate = {
     python: `print("=" * 50)
 print("👨‍💻 Developer: JOKER53 (KADHIRAVAN EG)")
@@ -327,9 +327,10 @@ console.log("Try adding more JavaScript code here");`,
     html: `<!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Intelligent Compiler</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; }
         .developer { background: linear-gradient(135deg, #3b82f6, #8b5cf6); padding: 15px; border-radius: 10px; color: white; margin-bottom: 20px; }
     </style>
 </head>
@@ -342,9 +343,8 @@ console.log("Try adding more JavaScript code here");`,
     <p>This is your HTML preview</p>
 </body>
 </html>`
-};
 
-        // Initialize Monaco Editor
+        // 𝕀𝕟𝕚𝕥𝕚𝕒𝕝𝕚𝕫𝕖 𝕋𝕙𝕖 𝕄𝕠𝕟𝕒𝕔𝕠 𝔼𝕕𝕚𝕥𝕠𝕣
         require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }});
        
         require(['vs/editor/editor.main'], function() {
@@ -359,13 +359,13 @@ console.log("Try adding more JavaScript code here");`,
                 wordWrap: 'on'
             });
             
-            // SAVE LOCAL STORAGE
+            //█▓▒▒░░░ SAVE LOCAL STORAGE░░░▒▒▓█
             editor.onDidChangeModelContent(() => {
                 saveCodeToLocalStorage();
             });
         });
 
-     // LOCAL STORAGE
+     // ʟօƈǟʟ ֆȶօʀǟɢɛ
         function saveCodeToLocalStorage() {
             if (editor) {
                 const lang = document.getElementById("lang").value;
@@ -400,7 +400,7 @@ console.log("Try adding more JavaScript code here");`,
             term.open(document.getElementById('terminal'));
             fitAddon.fit();
             term.writeln("\x1b[2m═══════════════════════════════════════════\x1b[0m");
-            term.writeln("\x1b[2m  Intelligent Compiler Terminal Ready\x1b[0m");
+            term.writeln("\x1b[2m  𝙄𝙣𝙩𝙚𝙡𝙡𝙞𝙜𝙚𝙣𝙩 𝘾𝙤𝙢𝙥𝙞𝙡𝙚𝙧 𝙏𝙚𝙧𝙢𝙞𝙣𝙖𝙡 𝙍𝙚𝙖𝙙𝙮\x1b[0m");
             term.writeln("\x1b[2m═══════════════════════════════════════════\x1b[0m");
             term.writeln("");
            
@@ -419,7 +419,7 @@ console.log("Try adding more JavaScript code here");`,
                         outputBuffer += inputBuffer + "\n";
                         inputBuffer = "";
                         break;
-                    case '\u007F': // Backspace
+                    case '\u007F': // Backspace <-
                         if (inputBuffer.length > 0) {
                             inputBuffer = inputBuffer.slice(0, -1);
                             term.write('\b \b');
@@ -486,7 +486,7 @@ console.log("Try adding more JavaScript code here");`,
                 term.clear();
             }
 
-            // Handle HTML preview
+            // 𝙵𝙾𝚁 𝙷𝚃𝙼𝙻 
             if (lang === "html") {
                 terminalDiv.style.display = "none";
                 preview.style.display = "block";
@@ -497,7 +497,7 @@ console.log("Try adding more JavaScript code here");`,
             terminalDiv.style.display = "block";
             preview.style.display = "none";
             
-            // Close existing connection
+            // Cₗₒₛₑ ₑₓᵢₛₜᵢₙg cₒₙₙₑcₜᵢₒₙ
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.close();
             }
@@ -571,7 +571,7 @@ console.log("Try adding more JavaScript code here");`,
                 const data = await response.json();
                 let aiText = data.suggestion || data.message || "No suggestion available";
                 
-                // Extract code fix from markdown
+                // ̷E̷̷x̷̷t̷̷r̷a̷̷c̷̷t̷ ̷c̷̷o̷̷d̷̷e̷ ̷f̷̷i̷̷x̷ ̷f̷̷r̷̷o̷̷m̷ ̷m̷a̷̷r̷̷k̷̷d̷̷o̷̷w̷̷n̷
                 const codeBlockRegex = /```(?:\w+)?\n([\s\S]*?)```/g;
                 const matches = [...aiText.matchAll(codeBlockRegex)];
                
@@ -584,7 +584,7 @@ console.log("Try adding more JavaScript code here");`,
                     pendingAiFix = "";
                 }
                 
-                // Sanitize and render markdown
+                // ̶S̶̶a̶̶n̶̶i̶̶t̶̶i̶̶z̶̶e̶ ̶a̶̶n̶̶d̶ ̶r̶̶e̶̶n̶̶d̶̶e̶̶r̶ ̶m̶̶a̶̶r̶̶k̶̶d̶̶o̶̶w̶̶n̶
                 const cleanHtml = DOMPurify.sanitize(marked.parse(aiText));
                 aiOut.innerHTML = cleanHtml;
                 
