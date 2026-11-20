@@ -54,7 +54,7 @@ ws_limiter = IPRateLimiter(max_requests=40, window_seconds=60)     # 40 compiler
 # Get your free key at https://build.nvidia.com  (no credit card needed)
 # Set env var:  NVIDIA_API_KEY=nvapi-xxxxxxxxxxxxxxxxxxxx
 NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
-NIM_MODEL = os.getenv("NIM_MODEL", "meta/llama-3.1-8b-instruct")
+NIM_MODEL = os.getenv("NIM_MODEL", "meta/llama-3.3-70b-instruct")
 
 def get_nim_client():
     key = os.getenv("NVIDIA_API_KEY")
@@ -158,29 +158,35 @@ Each must be actionable and reference the actual code:
 
 Categories to choose from: [Security] [Performance] [Readability] [Edge Case] [Memory] [Error Handling] [Best Practice]
 """
-    try:
-        response = client.chat.completions.create(
-            model=NIM_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=2048,
-            temperature=0.2,
-        )
-        return {"suggestion": response.choices[0].message.content}
-    except Exception as e:
-        err_msg = str(e)
-        # Handle deprecated/retired model IDs by attempting fallback to stable Llama 3.1
-        if ("410" in err_msg or "model_not_found" in err_msg) and NIM_MODEL != "meta/llama-3.1-8b-instruct":
-            try:
-                fallback_res = client.chat.completions.create(
-                    model="meta/llama-3.1-8b-instruct",
-                    messages=[{"role": "user", "content": prompt}],
-                    max_tokens=2048,
-                    temperature=0.2,
-                )
-                return {"suggestion": fallback_res.choices[0].message.content}
-            except Exception as e2:
-                return {"suggestion": f"AI Error: {str(e2)}"}
-        return {"suggestion": f"AI Error: {err_msg}"}
+    candidate_models = [
+        NIM_MODEL,
+        "meta/llama-3.3-70b-instruct",
+        "nvidia/llama-3.1-nemotron-70b-instruct",
+        "meta/llama-3.1-70b-instruct",
+        "deepseek-ai/deepseek-r1",
+    ]
+    seen_models = set()
+    models_to_try = [m for m in candidate_models if not (m in seen_models or seen_models.add(m))]
+
+    last_error = None
+    for model_name in models_to_try:
+        try:
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=2048,
+                temperature=0.2,
+            )
+            return {"suggestion": response.choices[0].message.content}
+        except Exception as e:
+            last_error = e
+            err_str = str(e)
+            # If the model is deprecated/gone (410) or not found (404), cascade to next candidate
+            if "410" in err_str or "model_not_found" in err_str or "404" in err_str:
+                continue
+            return {"suggestion": f"AI Error: {err_str}"}
+
+    return {"suggestion": f"AI Error: {str(last_error)}"}
 
 
 @app.post("/lint")
