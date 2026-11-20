@@ -54,7 +54,7 @@ ws_limiter = IPRateLimiter(max_requests=40, window_seconds=60)     # 40 compiler
 # Get your free key at https://build.nvidia.com  (no credit card needed)
 # Set env var:  NVIDIA_API_KEY=nvapi-xxxxxxxxxxxxxxxxxxxx
 NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
-NIM_MODEL = os.getenv("NIM_MODEL", "meta/llama-3.3-70b-instruct")
+NIM_MODEL = os.getenv("NIM_MODEL", "google/gemma-3-12b-it")
 
 def get_nim_client():
     key = os.getenv("NVIDIA_API_KEY")
@@ -64,6 +64,44 @@ def get_nim_client():
         base_url="https://integrate.api.nvidia.com/v1",
         api_key=key,
     )
+
+def resolve_candidate_models(client=None, preferred_model: str = None) -> list:
+    """
+    Resolve active NVIDIA NIM instruction/chat models.
+    Combines preferred model, verified active models, and dynamic discovery
+    from the upstream models endpoint to protect against model deprecations.
+    """
+    candidates = []
+    if preferred_model:
+        candidates.append(preferred_model)
+
+    known_active = [
+        "google/gemma-3-12b-it",
+        "nvidia/nemotron-3.5-lightning-30b-a3b",
+        "google/gemma-3-4b-it",
+        "mistralai/mistral-large-4-1t-a52b",
+        "z-ai/glm-5.3-flash",
+        "minimaxai/minimax-m3.1-flash",
+        "google/gemma-4-31b-it",
+    ]
+    candidates.extend(known_active)
+
+    if client:
+        try:
+            remote = client.models.list()
+            for m in remote.data:
+                mid = getattr(m, "id", "")
+                if (
+                    any(k in mid for k in ["-it", "instruct", "flash", "lightning"])
+                    and not any(bad in mid for bad in ["safety", "embed", "guard", "translate", "video"])
+                ):
+                    if mid not in candidates:
+                        candidates.append(mid)
+        except Exception:
+            pass
+
+    seen = set()
+    return [c for c in candidates if not (c in seen or seen.add(c))]
 
 # --- SECURITY: Resource limits applied to every subprocess ---
 def set_resource_limits():
@@ -158,15 +196,7 @@ Each must be actionable and reference the actual code:
 
 Categories to choose from: [Security] [Performance] [Readability] [Edge Case] [Memory] [Error Handling] [Best Practice]
 """
-    candidate_models = [
-        NIM_MODEL,
-        "meta/llama-3.3-70b-instruct",
-        "nvidia/llama-3.1-nemotron-70b-instruct",
-        "meta/llama-3.1-70b-instruct",
-        "deepseek-ai/deepseek-r1",
-    ]
-    seen_models = set()
-    models_to_try = [m for m in candidate_models if not (m in seen_models or seen_models.add(m))]
+    models_to_try = resolve_candidate_models(client, NIM_MODEL)
 
     last_error = None
     for model_name in models_to_try:
@@ -181,12 +211,12 @@ Categories to choose from: [Security] [Performance] [Readability] [Edge Case] [M
         except Exception as e:
             last_error = e
             err_str = str(e)
-            # If the model is deprecated/gone (410) or not found (404), cascade to next candidate
+            # If the model is deprecated/gone (410), not found (404), or unauthorized model, cascade
             if "410" in err_str or "model_not_found" in err_str or "404" in err_str:
                 continue
             return {"suggestion": f"AI Error: {err_str}"}
 
-    return {"suggestion": f"AI Error: {str(last_error)}"}
+    return {"suggestion": f"AI Error: Upstream AI models temporarily unavailable ({str(last_error)}). Please verify your NVIDIA_API_KEY."}
 
 
 @app.post("/lint")

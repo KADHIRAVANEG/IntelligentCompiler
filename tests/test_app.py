@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from app import app, get_nim_client, _lint_python, SAFE_ENV, IPRateLimiter
+from app import app, get_nim_client, _lint_python, SAFE_ENV, IPRateLimiter, resolve_candidate_models
 
 
 @pytest.fixture
@@ -79,3 +79,14 @@ def test_rate_limiter_logic():
     assert limiter.is_allowed(ip) is True
     assert limiter.is_allowed(ip) is True
     assert limiter.is_allowed(ip) is False  # Exceeded
+
+
+def test_resolve_candidate_models():
+    """Verify resolve_candidate_models returns list with preferred and active models."""
+    models = resolve_candidate_models(client=None, preferred_model="custom/my-model")
+    assert models[0] == "custom/my-model"
+    assert "google/gemma-3-12b-it" in models
+    assert "nvidia/nemotron-3.5-lightning-30b-a3b" in models
+    # Check no duplicates
+    assert len(models) == len(set(models))
+
