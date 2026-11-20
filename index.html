@@ -768,13 +768,6 @@ html, body {
         <span class="brand-logo-badge">IC</span>
         <span class="brand-title">Intelligent Compiler</span>
       </div>
-
-      <div class="header-divider"></div>
-
-      <div class="env-status-badge" id="env-badge" title="Backend Server Connectivity">
-        <span class="indicator-dot" id="env-dot"></span>
-        <span id="env-label">Connecting…</span>
-      </div>
     </div>
 
     <div class="header-right">
@@ -902,7 +895,7 @@ html, body {
     <aside class="inspector-panel" id="inspector-panel">
       <div class="inspector-header">
         <div class="inspector-title">
-          <i class="fa-solid fa-microchip"></i> Diagnostics &amp; Telemetry
+          <i class="fa-solid fa-code"></i> AI Diagnostics
         </div>
         <button class="btn-apply-patch" id="btn-apply-patch" onclick="applyFix()">
           <i class="fa-solid fa-check"></i> Apply Patch
@@ -911,9 +904,9 @@ html, body {
 
       <div class="inspector-body" id="inspector-body">
         <div class="empty-inspector-state">
-          <div class="empty-box-icon"><i class="fa-solid fa-code-compare"></i></div>
-          <h4>No Active Report</h4>
-          <p>Run code or click <b>Diagnostics</b> (<code>Ctrl+I</code>) to run static analysis, asymptotic complexity profiling, and automated bug fixes.</p>
+          <div class="empty-box-icon"><i class="fa-solid fa-code"></i></div>
+          <h4>No Report</h4>
+          <p>Click <b>Diagnostics</b> (<code>Ctrl+I</code>) to review code and suggest fixes.</p>
         </div>
       </div>
     </aside>
@@ -1050,29 +1043,23 @@ const fileMeta = {
 };
 
 const boilerplate = {
-  python: `print("================================================")\nprint("  Intelligent Compiler — Developer Console")\nprint("================================================")\n\nname = input("Enter your name: ")\nprint(f"Hello, {name}! Environment is running successfully.")\n`,
-  c: `#include <stdio.h>\n\nint main() {\n    char name[64];\n    printf("Enter name: ");\n    scanf("%63s", name);\n    printf("Hello, %s! Compiled with GCC.\\n", name);\n    return 0;\n}\n`,
-  cpp: `#include <iostream>\n#include <string>\n\nusing namespace std;\n\nint main() {\n    string name;\n    cout << "Enter name: ";\n    cin >> name;\n    cout << "Hello, " << name << "! Compiled with G++." << endl;\n    return 0;\n}\n`,
-  java: `import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        System.out.print("Enter name: ");\n        String name = scanner.nextLine();\n        System.out.println("Hello, " + name + "! Running on Java.");\n    }\n}\n`,
-  js: `console.log("=== Node.js Execution ===");\nconst greeting = "Hello from JavaScript runtime!";\nconsole.log(greeting);\n`,
-  html: `<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <title>Preview</title>\n  <style>\n    body { font-family: sans-serif; padding: 24px; background: #09090b; color: #f4f4f5; }\n    h1 { color: #3b82f6; }\n  </style>\n</head>\n<body>\n  <h1>Developer Sandbox</h1>\n  <p>Render interactive HTML, CSS, and JS components.</p>\n</body>\n</html>\n`
+  python: `name = input("Enter your name: ")\nprint(f"Hello, {name}!")\n`,
+  c: `#include <stdio.h>\n\nint main() {\n    char name[64];\n    printf("Enter name: ");\n    scanf("%63s", name);\n    printf("Hello, %s!\\n", name);\n    return 0;\n}\n`,
+  cpp: `#include <iostream>\n#include <string>\n\nusing namespace std;\n\nint main() {\n    string name;\n    cout << "Enter name: ";\n    cin >> name;\n    cout << "Hello, " << name << "!" << endl;\n    return 0;\n}\n`,
+  java: `import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        System.out.print("Enter name: ");\n        String name = scanner.nextLine();\n        System.out.println("Hello, " + name + "!");\n    }\n}\n`,
+  js: `console.log("Hello, World!");\n`,
+  html: `<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <title>Preview</title>\n</head>\n<body>\n  <h1>Hello, World!</h1>\n</body>\n</html>\n`
 };
 
 // ── Check Backend Health ──
 async function checkBackendHealth() {
-  const dot = document.getElementById("env-dot");
-  const label = document.getElementById("env-label");
   try {
     const res = await fetch(`${API_BASE}/`, { method: "GET", signal: AbortSignal.timeout(5000) });
     if (res.ok) {
-      dot.className = "indicator-dot";
-      label.textContent = isLocal ? "Local Server" : "Render Cloud";
-    } else {
-      throw new Error();
+      setLinterStatus("ready", "Ready");
     }
   } catch {
-    dot.className = "indicator-dot offline";
-    label.textContent = isLocal ? "Local Offline" : "Render Sleeping";
+    setLinterStatus("error", "Offline");
   }
 }
 
@@ -1259,8 +1246,6 @@ window.onload = function () {
   term.open(document.getElementById('terminal'));
   fitAddon.fit();
 
-  term.writeln("\x1b[38;2;113;113;122m[Console Ready] Interactive bi-directional stream active.\x1b[0m\r\n");
-
   window.addEventListener('resize', () => { if (fitAddon) fitAddon.fit(); });
 
   term.onData(e => {
@@ -1362,9 +1347,8 @@ async function triggerDiagnostics() {
   aiBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analyzing…';
   body.innerHTML = `
     <div class="empty-inspector-state">
-      <div class="empty-box-icon"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
-      <h4>Executing Telemetry Analysis</h4>
-      <p>Querying backend diagnostics engine for asymptotic complexity and code verification…</p>
+      <div class="empty-box-icon"><i class="fa-solid fa-spinner fa-spin"></i></div>
+      <h4>Analyzing code…</h4>
     </div>
   `;
 
