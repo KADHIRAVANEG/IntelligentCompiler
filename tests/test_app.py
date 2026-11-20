@@ -4,7 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from app import app, get_nim_client, _lint_python
+from app import app, get_nim_client, _lint_python, SAFE_ENV, IPRateLimiter
 
 
 @pytest.fixture
@@ -16,6 +16,11 @@ def test_serve_ui(client):
     response = client.get("/")
     assert response.status_code == 200
     assert "html" in response.headers.get("content-type", "").lower()
+
+
+def test_serve_ui_head(client):
+    response = client.head("/")
+    assert response.status_code == 200
 
 
 def test_lint_empty_code(client):
@@ -57,3 +62,20 @@ def test_analyze_without_api_key(client, monkeypatch):
     assert response.status_code == 200
     data = response.json()
     assert "AI Error: NVIDIA_API_KEY" in data["suggestion"]
+
+
+def test_safe_env_excludes_secrets():
+    """Verify that SAFE_ENV excludes sensitive keys like NVIDIA_API_KEY."""
+    assert "NVIDIA_API_KEY" not in SAFE_ENV
+    assert "SECRET" not in SAFE_ENV
+    assert "PATH" in SAFE_ENV
+
+
+def test_rate_limiter_logic():
+    """Verify rate limiter blocks after reaching threshold."""
+    limiter = IPRateLimiter(max_requests=3, window_seconds=10)
+    ip = "192.168.1.100"
+    assert limiter.is_allowed(ip) is True
+    assert limiter.is_allowed(ip) is True
+    assert limiter.is_allowed(ip) is True
+    assert limiter.is_allowed(ip) is False  # Exceeded

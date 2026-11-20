@@ -12,16 +12,20 @@ RUN npm install -g n && \
     ln -sf /usr/local/bin/node /usr/bin/node && \
     ln -sf /usr/local/bin/npm /usr/bin/npm
 
+# ------------------ Security: Create Non-Root Compiler User ------------------
+RUN useradd -m -u 1000 -s /bin/bash compiler
+
 # ------------------ Set Working Directory ------------------
 WORKDIR /app
 
 # ------------------ Copy Project Files ------------------
 COPY . /app
+RUN chown -R compiler:compiler /app
 
 # ------------------ Install Python Dependencies ------------------
-RUN pip3 install --upgrade pip setuptools wheel
-RUN pip3 install -r requirements.txt
-RUN pip3 install websockets
+RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip3 install --no-cache-dir -r requirements.txt && \
+    pip3 install --no-cache-dir websockets
 
 # ------------------ Expose Port ------------------
 EXPOSE 10000
@@ -30,6 +34,8 @@ EXPOSE 10000
 ENV PORT=10000
 ENV PYTHONUNBUFFERED=1
 
+# ------------------ Drop Root Privileges ------------------
+USER compiler
+
 # ------------------ Start FastAPI App ------------------
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "10000", "--ws", "websockets"]
-
