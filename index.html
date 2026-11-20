@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Intelligent Compiler — Cloud IDE & AI Diagnostics</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230f172a'/%3E%3Cpath d='M30 35 L50 20 L70 35 L70 65 L50 80 L30 65 Z' fill='none' stroke='%2338bdf8' stroke-width='6' stroke-linejoin='round'/%3E%3Ccircle cx='50' cy='50' r='10' fill='%23818cf8'/%3E%3C/svg%3E">
+<title>Intelligent Compiler — Developer Console & IDE</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%2318181b'/%3E%3Cpath d='M9 10 L16 16 L9 22' stroke='%23e4e4e7' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Cline x1='17' y1='22' x2='23' y2='22' stroke='%233b82f6' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
@@ -18,25 +18,29 @@
 
 <style>
 :root {
-  --bg-app: #090d16;
-  --bg-sidebar: #0f1422;
-  --bg-surface: #131929;
-  --bg-surface-hover: #1b233a;
-  --bg-editor: #0c111d;
-  --bg-terminal: #070a10;
-  --border-subtle: #1c263c;
-  --border-strong: #2a3754;
-  --accent-primary: #3b82f6;
-  --accent-primary-hover: #2563eb;
-  --accent-cyan: #06b6d4;
-  --accent-success: #10b981;
-  --accent-warning: #f59e0b;
-  --accent-danger: #ef4444;
-  --accent-ai: #8b5cf6;
-  --text-main: #f1f5f9;
-  --text-muted: #94a3b8;
-  --text-dim: #64748b;
-  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  /* Matte Developer Neutral Palette (Linear / Cloudflare / VS Code) */
+  --bg-app: #09090b;
+  --bg-panel: #111114;
+  --bg-surface: #18181b;
+  --bg-surface-hover: #222226;
+  --bg-editor: #0c0c0e;
+  --bg-terminal: #070708;
+  
+  --border: #27272a;
+  --border-subtle: #1c1c1f;
+  --border-strong: #3f3f46;
+  
+  --text-main: #f4f4f5;
+  --text-muted: #a1a1aa;
+  --text-dim: #71717a;
+  --text-dark: #3f3f46;
+  
+  --brand-blue: #3b82f6;
+  --status-green: #22c55e;
+  --status-yellow: #eab308;
+  --status-red: #ef4444;
+  
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, monospace;
 }
 
@@ -51,241 +55,204 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* App Container */
-.ide-wrapper {
+.dashboard-root {
   display: flex;
   flex-direction: column;
   width: 100%;
   height: 100vh;
 }
 
-/* ── Top Navigation Bar ── */
-.ide-navbar {
-  height: 48px;
-  background: var(--bg-sidebar);
-  border-bottom: 1px solid var(--border-subtle);
+/* ── Top Header / Command Bar ── */
+.dash-header {
+  height: 44px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
-  gap: 16px;
+  padding: 0 14px;
+  gap: 12px;
   flex-shrink: 0;
   user-select: none;
   z-index: 20;
 }
 
-.brand-section {
+.header-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
-.brand-logo {
+.brand-identity {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   text-decoration: none;
-  color: inherit;
+  color: var(--text-main);
 }
-.brand-icon-box {
-  width: 28px;
-  height: 28px;
-  background: linear-gradient(135deg, #1e293b, #0f172a);
-  border: 1px solid #334155;
-  border-radius: 7px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--accent-cyan);
-  font-size: 0.85rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-}
-.brand-title {
-  font-size: 0.95rem;
+.brand-logo-badge {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+  color: #fafafa;
+  font-family: var(--font-mono);
   font-weight: 700;
-  letter-spacing: -0.01em;
-  color: #f8fafc;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.brand-pill {
-  font-size: 0.65rem;
-  font-weight: 600;
+  font-size: 0.72rem;
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgba(59,130,246,0.15);
-  color: #60a5fa;
-  border: 1px solid rgba(59,130,246,0.3);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.brand-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #fafafa;
+  letter-spacing: -0.01em;
 }
 
-.breadcrumb-divider {
-  color: var(--border-strong);
-  font-size: 0.8rem;
+.header-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
 }
-.file-breadcrumb {
-  display: flex;
+
+.env-status-badge {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   font-family: var(--font-mono);
   color: var(--text-muted);
   background: var(--bg-surface);
-  padding: 3px 10px;
-  border-radius: 6px;
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 4px;
 }
-.file-breadcrumb i { font-size: 0.75rem; color: var(--accent-cyan); }
+.indicator-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--status-green);
+  display: inline-block;
+}
+.indicator-dot.offline { background: var(--status-red); }
 
-/* Center / Controls Section */
-.nav-actions {
+/* Center / Actions */
+.header-right {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
-.select-lang-container {
+.lang-dropdown-wrapper {
   position: relative;
   display: flex;
   align-items: center;
 }
-.lang-select {
+.lang-dropdown-wrapper select {
   appearance: none;
   background: var(--bg-surface);
-  color: #e2e8f0;
-  border: 1px solid var(--border-subtle);
-  padding: 6px 30px 6px 32px;
-  border-radius: 6px;
-  font-size: 0.82rem;
-  font-family: var(--font-sans);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.lang-select:hover {
-  border-color: var(--border-strong);
-  background: var(--bg-surface-hover);
-}
-.lang-icon-prefix {
-  position: absolute;
-  left: 10px;
-  pointer-events: none;
-  color: var(--text-dim);
-  font-size: 0.8rem;
-}
-.lang-icon-arrow {
-  position: absolute;
-  right: 10px;
-  pointer-events: none;
-  color: var(--text-dim);
-  font-size: 0.7rem;
-}
-
-/* Action Buttons */
-.btn-primary-run {
-  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
-  color: #ffffff;
-  border: 1px solid #10b981;
-  padding: 6px 14px;
-  border-radius: 6px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  box-shadow: 0 1px 3px rgba(16,185,129,0.3);
-  transition: all 0.15s ease;
-}
-.btn-primary-run:hover:not(:disabled) {
-  background: #10b981;
-  box-shadow: 0 0 12px rgba(16,185,129,0.4);
-}
-.btn-primary-run:disabled { opacity: 0.6; cursor: not-allowed; }
-.kbd-shortcut {
-  font-size: 0.68rem;
-  background: rgba(0,0,0,0.25);
-  padding: 1px 5px;
-  border-radius: 3px;
+  border: 1px solid var(--border);
+  color: var(--text-main);
+  padding: 5px 28px 5px 10px;
+  border-radius: 5px;
   font-family: var(--font-mono);
+  font-size: 0.78rem;
   font-weight: 500;
-  letter-spacing: 0;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.lang-dropdown-wrapper select:hover {
+  border-color: var(--border-strong);
+}
+.lang-dropdown-arrow {
+  position: absolute;
+  right: 9px;
+  pointer-events: none;
+  color: var(--text-dim);
+  font-size: 0.68rem;
 }
 
-.btn-ai-assistant {
+/* Matte Action Buttons */
+.btn-control {
   background: var(--bg-surface);
-  color: #c4b5fd;
-  border: 1px solid rgba(139,92,246,0.35);
-  padding: 6px 13px;
-  border-radius: 6px;
-  font-size: 0.82rem;
+  color: var(--text-main);
+  border: 1px solid var(--border);
+  padding: 5px 12px;
+  border-radius: 5px;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 7px;
-  transition: all 0.15s ease;
+  gap: 6px;
+  transition: all 0.12s ease;
+  user-select: none;
 }
-.btn-ai-assistant:hover:not(:disabled) {
-  background: rgba(139,92,246,0.12);
-  border-color: rgba(139,92,246,0.6);
-  color: #ede9fe;
+.btn-control:hover:not(:disabled) {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-strong);
 }
-.btn-ai-assistant:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-control:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.btn-control:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
-/* Secondary Tool Icons */
-.btn-nav-icon {
+.btn-run-action {
+  background: #f4f4f5;
+  color: #09090b;
+  border: 1px solid #ffffff;
+}
+.btn-run-action:hover:not(:disabled) {
+  background: #e4e4e7;
+  border-color: #e4e4e7;
+}
+
+.btn-sidebar-toggle {
   background: transparent;
+  border: 1px solid var(--border);
   color: var(--text-muted);
-  border: 1px solid transparent;
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
+  width: 30px;
+  height: 28px;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.15s ease;
+  border-radius: 5px;
 }
-.btn-nav-icon:hover {
+.btn-sidebar-toggle:hover {
   background: var(--bg-surface);
-  border-color: var(--border-subtle);
   color: var(--text-main);
-}
-
-.btn-label-icon {
-  background: var(--bg-surface);
-  color: var(--text-muted);
-  border: 1px solid var(--border-subtle);
-  padding: 5px 11px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.btn-label-icon:hover {
-  background: var(--bg-surface-hover);
   border-color: var(--border-strong);
+}
+.btn-sidebar-toggle.active {
+  background: var(--bg-surface);
   color: var(--text-main);
+  border-color: var(--border-strong);
 }
 
-/* ── Workspace Grid Layout ── */
-.ide-workspace {
+.key-pill {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: inherit;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+/* ── Main Workspace Body ── */
+.dash-workspace {
   flex: 1;
   display: flex;
   flex-direction: row;
   min-height: 0;
-  overflow: hidden;
   position: relative;
+  overflow: hidden;
 }
 
-.center-column {
+.dash-main-column {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -294,55 +261,44 @@ html, body {
 }
 
 /* Editor Section */
-.editor-pane {
-  flex: 0 0 58%;
+.editor-container {
+  flex: 0 0 60%;
   display: flex;
   flex-direction: column;
-  min-height: 140px;
-  position: relative;
+  min-height: 120px;
   background: var(--bg-editor);
+  position: relative;
 }
-.editor-tabs-bar {
-  height: 34px;
-  background: #090d16;
-  border-bottom: 1px solid var(--border-subtle);
+.editor-tab-strip {
+  height: 32px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  padding: 0 8px;
+  padding: 0 10px;
   gap: 4px;
-  user-select: none;
 }
-.tab-item {
+.active-file-tab {
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 28px;
-  padding: 0 12px;
-  border-radius: 5px 5px 0 0;
-  font-size: 0.78rem;
-  font-family: var(--font-mono);
-  color: var(--text-muted);
-  background: transparent;
-  border: 1px solid transparent;
-  border-bottom: none;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-.tab-item.active {
+  height: 26px;
+  padding: 0 10px;
   background: var(--bg-editor);
-  color: #f8fafc;
-  border-color: var(--border-subtle);
+  border: 1px solid var(--border);
   border-bottom: 1px solid var(--bg-editor);
+  border-radius: 4px 4px 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: #fafafa;
   margin-bottom: -1px;
-  font-weight: 500;
 }
-.tab-item i { font-size: 0.75rem; color: var(--accent-primary); }
+.active-file-tab i { font-size: 0.7rem; color: var(--text-muted); }
 
 #monaco-container {
   flex: 1;
   width: 100%;
   min-height: 0;
-  overflow: hidden;
 }
 
 /* Drop File Overlay */
@@ -351,49 +307,47 @@ html, body {
   position: absolute;
   inset: 0;
   z-index: 100;
-  background: rgba(15,23,42,0.85);
-  backdrop-filter: blur(4px);
-  border: 2px dashed var(--accent-primary);
+  background: rgba(9,9,11,0.92);
+  border: 2px dashed var(--border-strong);
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   pointer-events: none;
 }
 #drop-overlay.active { display: flex; }
-#drop-overlay i { font-size: 2.8rem; color: var(--accent-cyan); animation: bounce 1s infinite; }
-#drop-overlay p { font-size: 1rem; font-weight: 600; color: #f8fafc; }
+#drop-overlay i { font-size: 2rem; color: var(--text-main); }
+#drop-overlay p { font-size: 0.88rem; font-family: var(--font-mono); color: var(--text-muted); }
 
 /* ── Splitters ── */
 .splitter-h {
-  height: 5px;
+  height: 4px;
   background: var(--bg-app);
-  border-top: 1px solid var(--border-subtle);
-  border-bottom: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   cursor: ns-resize;
   flex-shrink: 0;
-  position: relative;
-  transition: background 0.15s ease;
+  transition: background 0.15s;
 }
 .splitter-h:hover, .splitter-h.dragging {
-  background: var(--accent-primary);
+  background: var(--border-strong);
 }
 
 .splitter-v {
-  width: 5px;
+  width: 4px;
   background: var(--bg-app);
-  border-left: 1px solid var(--border-subtle);
-  border-right: 1px solid var(--border-subtle);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
   cursor: ew-resize;
   flex-shrink: 0;
-  transition: background 0.15s ease;
+  transition: background 0.15s;
 }
 .splitter-v:hover, .splitter-v.dragging {
-  background: var(--accent-ai);
+  background: var(--border-strong);
 }
 
-/* ── Bottom Dock Pane (Terminal & Output) ── */
-.dock-pane {
+/* ── Console / Terminal Dock ── */
+.dock-container {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -401,191 +355,186 @@ html, body {
   background: var(--bg-terminal);
   overflow: hidden;
 }
-
-.dock-header {
-  height: 34px;
-  background: var(--bg-sidebar);
-  border-bottom: 1px solid var(--border-subtle);
+.dock-header-bar {
+  height: 32px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
+  padding: 0 10px;
   user-select: none;
 }
-.dock-tabs {
+.dock-tab-group {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
-.dock-tab {
-  background: none;
+.dock-tab-btn {
+  background: transparent;
   border: none;
-  padding: 6px 10px;
+  padding: 4px 9px;
   border-radius: 4px;
-  font-size: 0.76rem;
-  font-weight: 600;
+  font-family: var(--font-sans);
+  font-size: 0.74rem;
+  font-weight: 500;
   color: var(--text-dim);
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  transition: all 0.15s;
+  transition: all 0.12s;
 }
-.dock-tab:hover { color: var(--text-muted); background: var(--bg-surface); }
-.dock-tab.active {
+.dock-tab-btn:hover { color: var(--text-muted); background: var(--bg-surface); }
+.dock-tab-btn.active {
   color: var(--text-main);
   background: var(--bg-surface);
+  font-weight: 600;
 }
-.badge-count {
-  font-size: 0.68rem;
-  padding: 1px 6px;
-  border-radius: 10px;
-  background: var(--border-subtle);
-  color: var(--text-muted);
+.tab-badge {
   font-family: var(--font-mono);
+  font-size: 0.68rem;
+  padding: 0 5px;
+  border-radius: 3px;
+  background: var(--border);
+  color: var(--text-muted);
 }
-.badge-count.has-error {
-  background: rgba(239,68,68,0.2);
-  color: #f87171;
-  border: 1px solid rgba(239,68,68,0.4);
-}
-.dock-actions {
+.tab-badge.error { background: #7f1d1d; color: #fecaca; }
+
+.dock-actions-group {
   display: flex;
   align-items: center;
   gap: 6px;
 }
-.dock-action-btn {
+.dock-icon-btn {
   background: transparent;
   border: 1px solid transparent;
   color: var(--text-dim);
-  padding: 3px 8px;
+  padding: 3px 7px;
   border-radius: 4px;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
-.dock-action-btn:hover {
+.dock-icon-btn:hover {
   background: var(--bg-surface);
+  border-color: var(--border);
   color: var(--text-main);
-  border-color: var(--border-subtle);
 }
 
-.dock-body {
+.dock-content-box {
   flex: 1;
   position: relative;
   overflow: hidden;
 }
-#terminal-wrapper {
+#term-view {
   width: 100%;
   height: 100%;
-  padding: 8px 12px;
+  padding: 6px 10px;
 }
-#terminal {
-  width: 100%;
-  height: 100%;
-}
-#preview-wrapper {
+#terminal { width: 100%; height: 100%; }
+
+#preview-view {
   display: none;
   width: 100%;
   height: 100%;
   background: #ffffff;
 }
-#preview-iframe {
+#preview-frame {
   width: 100%;
   height: 100%;
   border: none;
 }
 
-/* Problems Table in Dock */
-#problems-wrapper {
+#problems-view {
   display: none;
   width: 100%;
   height: 100%;
   overflow-y: auto;
   background: var(--bg-terminal);
 }
-.problems-table {
+.problems-grid {
   width: 100%;
   border-collapse: collapse;
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
 }
-.problems-table tr {
+.problems-grid tr {
   border-bottom: 1px solid var(--border-subtle);
   cursor: pointer;
 }
-.problems-table tr:hover {
-  background: rgba(255,255,255,0.03);
+.problems-grid tr:hover {
+  background: var(--bg-surface);
 }
-.problems-table td {
-  padding: 6px 14px;
-}
-.prob-col-line { width: 60px; color: var(--text-dim); }
-.prob-col-icon { width: 24px; text-align: center; }
-.prob-msg-error { color: #fca5a5; }
-.prob-msg-warning { color: #fde68a; }
+.problems-grid td { padding: 5px 12px; }
+.prob-col-line { width: 64px; color: var(--text-dim); }
+.prob-col-sev { width: 20px; }
+.sev-err { color: var(--status-red); }
+.sev-warn { color: var(--status-yellow); }
 
-/* ── Right Panel: AI Copilot & Diagnostics ── */
-.ai-sidebar {
+/* ── Right Inspector / AI Diagnostics Panel ── */
+.inspector-panel {
   flex: 0 0 380px;
   min-width: 280px;
-  max-width: 600px;
-  background: var(--bg-sidebar);
-  border-left: 1px solid var(--border-subtle);
+  max-width: 650px;
+  background: var(--bg-panel);
+  border-left: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   position: relative;
 }
-.ai-header {
-  height: 38px;
+.inspector-panel.collapsed {
+  display: none;
+}
+
+.inspector-header {
+  height: 32px;
   background: var(--bg-surface);
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 14px;
+  padding: 0 10px;
   user-select: none;
 }
-.ai-header-title {
+.inspector-title {
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #c4b5fd;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  gap: 6px;
 }
-.ai-header-title i { font-size: 0.85rem; color: var(--accent-ai); }
-
-.btn-apply-fix {
-  background: linear-gradient(180deg, #10b981 0%, #059669 100%);
-  color: white;
+.btn-apply-patch {
+  background: var(--status-green);
+  color: #052e16;
   border: none;
-  padding: 4px 10px;
-  border-radius: 5px;
-  font-size: 0.74rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.72rem;
   font-weight: 600;
   display: none;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   cursor: pointer;
-  transition: all 0.15s ease;
 }
-.btn-apply-fix:hover { background: #10b981; }
+.btn-apply-patch:hover { opacity: 0.9; }
 
-.ai-scrollable {
+.inspector-body {
   flex: 1;
-  padding: 16px;
+  padding: 14px;
   overflow-y: auto;
-  font-size: 0.86rem;
+  font-size: 0.82rem;
   line-height: 1.6;
-  color: #cbd5e1;
+  color: #d4d4d8;
 }
-.ai-empty-state {
+
+.empty-inspector-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -595,391 +544,350 @@ html, body {
   text-align: center;
   gap: 12px;
 }
-.ai-empty-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+.empty-box-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
   background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--accent-ai);
-  font-size: 1.2rem;
+  color: var(--text-muted);
+  font-size: 1rem;
 }
-.ai-empty-state h4 { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; }
-.ai-empty-state p { font-size: 0.78rem; max-width: 220px; line-height: 1.5; }
+.empty-inspector-state h4 { font-size: 0.86rem; color: var(--text-muted); font-weight: 600; }
+.empty-inspector-state p { font-size: 0.76rem; max-width: 240px; line-height: 1.5; }
 
-/* AI Output Formatting */
-.ai-scrollable h2 {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #e2e8f0;
-  margin: 16px 0 8px 0;
+/* Markdown Report Styles */
+.inspector-body h2 {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #fafafa;
+  margin: 14px 0 6px 0;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 3px;
   display: flex;
   align-items: center;
   gap: 6px;
-  border-bottom: 1px solid var(--border-subtle);
-  padding-bottom: 4px;
 }
-.ai-scrollable h2:first-child { margin-top: 0; }
-.ai-scrollable p { margin-bottom: 10px; font-size: 0.84rem; }
-.ai-scrollable ul { padding-left: 20px; margin-bottom: 12px; font-size: 0.84rem; }
-.ai-scrollable li { margin-bottom: 5px; }
-.ai-scrollable pre {
-  background: #090d16;
-  border: 1px solid var(--border-subtle);
-  border-radius: 6px;
-  padding: 12px;
-  margin: 10px 0;
+.inspector-body h2:first-child { margin-top: 0; }
+.inspector-body p { margin-bottom: 8px; font-size: 0.8rem; }
+.inspector-body ul { padding-left: 18px; margin-bottom: 10px; font-size: 0.8rem; }
+.inspector-body li { margin-bottom: 4px; }
+.inspector-body pre {
+  background: #09090b;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 10px;
+  margin: 8px 0;
   overflow-x: auto;
   font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: #e2e8f0;
+  font-size: 0.76rem;
+  color: #e4e4e7;
 }
-.ai-scrollable code {
+.inspector-body code {
   font-family: var(--font-mono);
-  font-size: 0.78rem;
-  background: rgba(255,255,255,0.08);
-  padding: 2px 5px;
-  border-radius: 4px;
+  font-size: 0.76rem;
+  background: var(--bg-surface);
+  padding: 2px 4px;
+  border-radius: 3px;
+  color: #e4e4e7;
 }
-.ai-scrollable pre code { background: transparent; padding: 0; }
+.inspector-body pre code { background: transparent; padding: 0; }
 
-/* ── Bottom Status Bar ── */
-.ide-statusbar {
-  height: 24px;
-  background: #060910;
-  border-top: 1px solid var(--border-subtle);
+/* ── Bottom Status Strip ── */
+.dash-statusbar {
+  height: 22px;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px;
-  font-size: 0.72rem;
+  padding: 0 10px;
+  font-size: 0.7rem;
   font-family: var(--font-mono);
   color: var(--text-dim);
   user-select: none;
-  z-index: 10;
 }
-.sb-left, .sb-right {
+.sb-group {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
-.sb-item {
+.sb-indicator {
   display: flex;
   align-items: center;
   gap: 5px;
-  cursor: default;
 }
-.sb-clickable {
+.sb-btn {
   cursor: pointer;
-  padding: 2px 6px;
+  padding: 1px 4px;
   border-radius: 3px;
-  transition: all 0.15s;
 }
-.sb-clickable:hover {
+.sb-btn:hover {
   background: var(--bg-surface);
   color: var(--text-main);
 }
-.sb-dot {
-  width: 7px;
-  height: 7px;
+.status-pip {
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   display: inline-block;
 }
-.sb-dot.ready { background: var(--accent-success); }
-.sb-dot.busy { background: var(--accent-warning); animation: pulse 1s infinite; }
-.sb-dot.error { background: var(--accent-danger); }
+.status-pip.ready { background: var(--status-green); }
+.status-pip.busy { background: var(--status-yellow); }
+.status-pip.error { background: var(--status-red); }
 
-/* ── About Modal ── */
+/* ── Developer Modal (Matte Dashboard Card) ── */
 #about-overlay {
   display: none;
   position: fixed;
   inset: 0;
   z-index: 10000;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.65);
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(2px);
 }
 #about-overlay.open { display: flex; }
-.about-card {
-  background: var(--bg-sidebar);
+.modal-frame {
+  background: var(--bg-panel);
   border: 1px solid var(--border-strong);
-  border-radius: 14px;
-  width: 560px;
-  max-width: 95vw;
-  max-height: 90vh;
+  border-radius: 8px;
+  width: 520px;
+  max-width: 94vw;
+  max-height: 88vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+  box-shadow: 0 10px 40px rgba(0,0,0,0.7);
 }
-.about-hero {
-  background: linear-gradient(180deg, #172138 0%, #0f1422 100%);
-  padding: 24px 24px 18px;
-  text-align: center;
-  position: relative;
-  border-bottom: 1px solid var(--border-subtle);
-}
-.btn-modal-close {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  cursor: pointer;
+.modal-header-section {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  transition: 0.15s;
+  justify-content: space-between;
 }
-.btn-modal-close:hover { background: rgba(255,255,255,0.12); color: #fff; }
-.about-avatar {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  margin: 0 auto 10px;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 1.4rem;
-  color: white;
-  border: 3px solid #090d16;
-  box-shadow: 0 4px 16px rgba(59,130,246,0.3);
+.modal-header-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #fafafa;
 }
-.about-title { font-size: 1.15rem; font-weight: 700; color: #f8fafc; }
-.about-handle { font-family: var(--font-mono); font-size: 0.8rem; color: #60a5fa; margin-top: 2px; }
-.about-subtitle { font-size: 0.78rem; color: var(--text-dim); margin-top: 4px; }
-
-.modal-nav {
-  display: flex;
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border-subtle);
-}
-.modal-nav-tab {
-  flex: 1;
-  padding: 10px;
-  background: none;
+.modal-close-icon {
+  background: transparent;
   border: none;
   color: var(--text-dim);
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.85rem;
   cursor: pointer;
+  padding: 4px;
+}
+.modal-close-icon:hover { color: #fff; }
+
+.modal-nav-strip {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+}
+.modal-tab-action {
+  flex: 1;
+  padding: 8px;
+  background: none;
+  border: none;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  cursor: pointer;
   border-bottom: 2px solid transparent;
-  transition: all 0.15s;
+  transition: all 0.12s;
 }
-.modal-nav-tab.active {
-  color: var(--accent-primary);
-  border-bottom-color: var(--accent-primary);
-  background: rgba(59,130,246,0.06);
+.modal-tab-action.active {
+  color: #fafafa;
+  border-bottom-color: var(--text-main);
+  background: var(--bg-panel);
 }
-.modal-content-body {
+
+.modal-body-section {
   padding: 16px 20px;
   overflow-y: auto;
   flex: 1;
 }
-.detail-item {
+.info-row {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 10px 0;
+  padding: 8px 0;
   border-bottom: 1px solid var(--border-subtle);
 }
-.detail-item:last-child { border-bottom: none; }
-.detail-item i { color: var(--accent-cyan); font-size: 0.85rem; margin-top: 2px; width: 16px; }
-.detail-label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-dim); font-weight: 600; letter-spacing: 0.05em; margin-bottom: 2px; }
-.detail-val { font-size: 0.84rem; color: var(--text-muted); line-height: 1.5; }
-.skill-badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
-.skill-tag {
-  background: rgba(59,130,246,0.1);
-  border: 1px solid rgba(59,130,246,0.25);
-  color: #93c5fd;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.72rem;
+.info-row:last-child { border-bottom: none; }
+.info-row i { color: var(--text-dim); font-size: 0.8rem; margin-top: 3px; width: 14px; }
+.info-title { font-size: 0.68rem; text-transform: uppercase; color: var(--text-dim); font-weight: 600; letter-spacing: 0.05em; margin-bottom: 2px; }
+.info-desc { font-size: 0.82rem; color: var(--text-muted); line-height: 1.45; }
+.tags-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+.tag-badge {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.7rem;
   font-family: var(--font-mono);
 }
 
-.modal-footer {
-  padding: 12px 20px;
+.modal-footer-section {
+  padding: 10px 20px;
   background: var(--bg-surface);
-  border-top: 1px solid var(--border-subtle);
+  border-top: 1px solid var(--border);
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 8px;
 }
-.modal-footer a {
+.modal-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   color: var(--text-muted);
   text-decoration: none;
-  font-size: 0.78rem;
-  padding: 6px 12px;
-  border-radius: 5px;
-  border: 1px solid var(--border-subtle);
-  transition: all 0.15s;
+  font-size: 0.76rem;
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
 }
-.modal-footer a:hover {
-  color: #fff;
-  border-color: var(--accent-primary);
-}
-
-@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
-@keyframes bounce { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);} }
-
-/* Responsive adjustments */
-@media (max-width: 900px) {
-  .ide-workspace { flex-direction: column; }
-  .ai-sidebar { flex: 0 0 240px; border-left: none; border-top: 1px solid var(--border-subtle); }
-  .splitter-v { display: none; }
-  .brand-title small { display: none; }
-}
+.modal-link:hover { color: #fff; border-color: var(--border-strong); }
 </style>
 </head>
 <body>
 
-<div class="ide-wrapper">
-  <!-- ── Top Navbar ── -->
-  <header class="ide-navbar">
-    <div class="brand-section">
-      <div class="brand-logo">
-        <div class="brand-icon-box">
-          <i class="fa-solid fa-terminal"></i>
-        </div>
-        <div class="brand-title">
-          Intelligent Compiler
-          <span class="brand-pill">v1.0</span>
-        </div>
+<div class="dashboard-root">
+  <!-- ── Top Command Bar ── -->
+  <header class="dash-header">
+    <div class="header-left">
+      <div class="brand-identity">
+        <span class="brand-logo-badge">IC</span>
+        <span class="brand-title">Intelligent Compiler</span>
       </div>
-      <span class="breadcrumb-divider">/</span>
-      <div class="file-breadcrumb">
-        <i class="fa-brands fa-python" id="crumb-icon"></i>
-        <span id="crumb-filename">main.py</span>
+
+      <div class="header-divider"></div>
+
+      <div class="env-status-badge" id="env-badge" title="Backend Server Connectivity">
+        <span class="indicator-dot" id="env-dot"></span>
+        <span id="env-label">Connecting…</span>
       </div>
     </div>
 
-    <div class="nav-actions">
+    <div class="header-right">
       <!-- Language Selector -->
-      <div class="select-lang-container">
-        <i class="fa-solid fa-code lang-icon-prefix"></i>
-        <select id="lang" class="lang-select" onchange="changeLanguage()">
+      <div class="lang-dropdown-wrapper">
+        <select id="lang" onchange="changeLanguage()">
           <option value="python">Python 3.11</option>
           <option value="c">C (GCC)</option>
           <option value="cpp">C++ (G++)</option>
           <option value="java">Java (OpenJDK)</option>
           <option value="js">JavaScript (Node)</option>
-          <option value="html">HTML5 / Web</option>
+          <option value="html">HTML5 (Web)</option>
         </select>
-        <i class="fa-solid fa-chevron-down lang-icon-arrow"></i>
+        <i class="fa-solid fa-chevron-down lang-dropdown-arrow"></i>
       </div>
 
-      <!-- Run Action Button -->
-      <button class="btn-primary-run" id="run-btn" onclick="runCode()" title="Run Code (Ctrl + Enter)">
-        <i class="fa-solid fa-play"></i> Run
-        <span class="kbd-shortcut">Ctrl+↵</span>
+      <!-- Run Action -->
+      <button class="btn-control btn-run-action" id="run-btn" onclick="runCode()" title="Execute (Ctrl + Enter)">
+        <i class="fa-solid fa-play" style="font-size:0.7rem;"></i> Run
+        <span class="key-pill">Ctrl+↵</span>
       </button>
 
-      <!-- AI Assistant Button -->
-      <button class="btn-ai-assistant" id="ai-btn" onclick="askAI()" title="Explain & Fix with AI (Ctrl + I)">
-        <i class="fa-solid fa-wand-magic-sparkles"></i> AI Assistant
-        <span class="kbd-shortcut">Ctrl+I</span>
+      <!-- AI Diagnostics Toggle / Trigger -->
+      <button class="btn-control" id="ai-btn" onclick="triggerDiagnostics()" title="Run AI Diagnostics (Ctrl + I)">
+        <i class="fa-solid fa-microchip"></i> Diagnostics
+        <span class="key-pill">Ctrl+I</span>
       </button>
 
-      <!-- Utility Icons -->
-      <button class="btn-nav-icon" onclick="downloadCode()" title="Download code file">
+      <!-- Secondary Tools -->
+      <button class="btn-control" onclick="downloadCode()" title="Download file">
         <i class="fa-solid fa-download"></i>
       </button>
 
-      <label class="btn-nav-icon" title="Upload code file (Max 2MB)" style="cursor:pointer;margin:0;">
+      <label class="btn-control" title="Import code file" style="cursor:pointer;margin:0;">
         <i class="fa-solid fa-upload"></i>
         <input type="file" id="file-input" accept=".py,.c,.cpp,.java,.js,.html,.txt" style="display:none;" onchange="uploadFile(event)">
       </label>
 
-      <button class="btn-nav-icon" onclick="openAbout()" title="About Project & Developer">
+      <!-- Toggle Right Panel -->
+      <button class="btn-control btn-sidebar-toggle active" id="toggle-sidebar-btn" onclick="toggleSidebar()" title="Toggle Inspector Panel">
+        <i class="fa-solid fa-table-columns"></i>
+      </button>
+
+      <!-- About Modal -->
+      <button class="btn-control btn-sidebar-toggle" onclick="openAbout()" title="System Information">
         <i class="fa-solid fa-circle-info"></i>
       </button>
     </div>
   </header>
 
   <!-- ── Main Workspace ── -->
-  <div class="ide-workspace" id="ide-workspace">
+  <main class="dash-workspace" id="dash-workspace">
     <!-- Center Column (Editor + Dock) -->
-    <div class="center-column" id="center-column">
-      <!-- Code Editor Section -->
-      <section class="editor-pane" id="editor-pane">
-        <div class="editor-tabs-bar">
-          <div class="tab-item active" id="editor-tab">
-            <i class="fa-brands fa-python" id="tab-icon"></i>
-            <span id="tab-filename">main.py</span>
+    <div class="dash-main-column" id="dash-main-column">
+      <!-- Code Editor Pane -->
+      <section class="editor-container" id="editor-container">
+        <div class="editor-tab-strip">
+          <div class="active-file-tab">
+            <i class="fa-solid fa-file-code" id="tab-file-icon"></i>
+            <span id="tab-file-name">main.py</span>
           </div>
         </div>
 
         <div id="drop-overlay">
-          <i class="fa-solid fa-file-code"></i>
-          <p>Drop file here to import code</p>
+          <i class="fa-solid fa-file-import"></i>
+          <p>Drop file here to import</p>
         </div>
 
         <div id="monaco-container"></div>
       </section>
 
       <!-- Horizontal Resizer -->
-      <div class="splitter-h" id="splitter-h" title="Drag to resize panels"></div>
+      <div class="splitter-h" id="splitter-h"></div>
 
-      <!-- Bottom Dock (Terminal / Preview / Problems) -->
-      <section class="dock-pane" id="dock-pane">
-        <div class="dock-header">
-          <div class="dock-tabs">
-            <button class="dock-tab active" id="tab-btn-terminal" onclick="switchDockTab('terminal')">
-              <i class="fa-solid fa-terminal"></i> Terminal
+      <!-- Bottom Console / Dock -->
+      <section class="dock-container" id="dock-container">
+        <div class="dock-header-bar">
+          <div class="dock-tab-group">
+            <button class="dock-tab-btn active" id="btn-tab-terminal" onclick="switchDockTab('terminal')">
+              Terminal
             </button>
-            <button class="dock-tab" id="tab-btn-preview" onclick="switchDockTab('preview')" style="display:none;">
-              <i class="fa-solid fa-globe"></i> Live Preview
+            <button class="dock-tab-btn" id="btn-tab-preview" onclick="switchDockTab('preview')" style="display:none;">
+              Live Preview
             </button>
-            <button class="dock-tab" id="tab-btn-problems" onclick="switchDockTab('problems')">
-              <i class="fa-solid fa-circle-exclamation"></i> Problems
-              <span class="badge-count" id="problems-count">0</span>
+            <button class="dock-tab-btn" id="btn-tab-problems" onclick="switchDockTab('problems')">
+              Problems <span class="tab-badge" id="problems-count">0</span>
             </button>
           </div>
 
-          <div class="dock-actions">
-            <button class="dock-action-btn" id="view-tab-btn" onclick="viewInNewTab()" style="display:none;">
-              <i class="fa-solid fa-up-right-from-square"></i> Popout
+          <div class="dock-actions-group">
+            <button class="dock-icon-btn" id="btn-popout-preview" onclick="viewInNewTab()" style="display:none;" title="Open in new window">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> Popout
             </button>
-            <button class="dock-action-btn" onclick="copyOutput()" title="Copy terminal output">
+            <button class="dock-icon-btn" onclick="copyOutput()" title="Copy terminal output">
               <i class="fa-regular fa-copy"></i> Copy
             </button>
-            <button class="dock-action-btn" onclick="clearTerminal()" title="Clear terminal">
+            <button class="dock-icon-btn" onclick="clearTerminal()" title="Clear terminal">
               <i class="fa-solid fa-ban"></i> Clear
             </button>
           </div>
         </div>
 
-        <div class="dock-body">
-          <div id="terminal-wrapper">
+        <div class="dock-content-box">
+          <div id="term-view">
             <div id="terminal"></div>
           </div>
-          <div id="preview-wrapper">
-            <iframe id="preview-iframe" sandbox="allow-scripts allow-modals"></iframe>
+          <div id="preview-view">
+            <iframe id="preview-frame" sandbox="allow-scripts allow-modals"></iframe>
           </div>
-          <div id="problems-wrapper">
-            <table class="problems-table" id="problems-table">
+          <div id="problems-view">
+            <table class="problems-grid" id="problems-table">
               <tbody>
-                <tr><td colspan="3" style="color:var(--text-dim);padding:14px;text-align:center;">No problems detected in code.</td></tr>
+                <tr><td colspan="3" style="color:var(--text-dim);padding:14px;text-align:center;">No problems detected.</td></tr>
               </tbody>
             </table>
           </div>
@@ -988,171 +896,187 @@ html, body {
     </div>
 
     <!-- Vertical Resizer -->
-    <div class="splitter-v" id="splitter-v" title="Drag to resize AI assistant"></div>
+    <div class="splitter-v" id="splitter-v"></div>
 
-    <!-- Right Sidebar (AI Copilot & Diagnostics) -->
-    <aside class="ai-sidebar" id="ai-sidebar">
-      <div class="ai-header">
-        <div class="ai-header-title">
-          <i class="fa-solid fa-sparkles"></i> AI Diagnostics
+    <!-- Right Inspector / Diagnostics Drawer -->
+    <aside class="inspector-panel" id="inspector-panel">
+      <div class="inspector-header">
+        <div class="inspector-title">
+          <i class="fa-solid fa-microchip"></i> Diagnostics &amp; Telemetry
         </div>
-        <button class="btn-apply-fix" id="header-fix-btn" onclick="applyFix()">
-          <i class="fa-solid fa-check"></i> Apply Fix
+        <button class="btn-apply-patch" id="btn-apply-patch" onclick="applyFix()">
+          <i class="fa-solid fa-check"></i> Apply Patch
         </button>
       </div>
 
-      <div class="ai-scrollable" id="ai-out">
-        <div class="ai-empty-state">
-          <div class="ai-empty-icon">
-            <i class="fa-solid fa-wand-magic-sparkles"></i>
-          </div>
-          <h4>Intelligent Code Review</h4>
-          <p>Click <b>AI Assistant</b> or press <b>Ctrl+I</b> to analyze bugs, complexities, and generate instant automated fixes.</p>
+      <div class="inspector-body" id="inspector-body">
+        <div class="empty-inspector-state">
+          <div class="empty-box-icon"><i class="fa-solid fa-code-compare"></i></div>
+          <h4>No Active Report</h4>
+          <p>Run code or click <b>Diagnostics</b> (<code>Ctrl+I</code>) to run static analysis, asymptotic complexity profiling, and automated bug fixes.</p>
         </div>
       </div>
     </aside>
-  </div>
+  </main>
 
-  <!-- ── Bottom Status Bar ── -->
-  <footer class="ide-statusbar">
-    <div class="sb-left">
-      <div class="sb-item sb-clickable" onclick="switchDockTab('problems')">
-        <span class="sb-dot ready" id="sb-dot"></span>
-        <span id="sb-linter-text">Ready</span>
+  <!-- ── Bottom Status Strip ── -->
+  <footer class="dash-statusbar">
+    <div class="sb-group">
+      <div class="sb-indicator sb-btn" onclick="switchDockTab('problems')">
+        <span class="status-pip ready" id="sb-pip"></span>
+        <span id="sb-status-text">Ready</span>
       </div>
-      <div class="sb-item">
-        <i class="fa-solid fa-code-branch"></i>
-        <span>main</span>
-      </div>
+      <div>git:(main)</div>
     </div>
-    <div class="sb-right">
-      <div class="sb-item" id="sb-cursor">Ln 1, Col 1</div>
-      <div class="sb-item">UTF-8</div>
-      <div class="sb-item">Spaces: 4</div>
-      <div class="sb-item" id="sb-lang-label">Python</div>
+    <div class="sb-group">
+      <div id="sb-cursor-pos">Ln 1, Col 1</div>
+      <div>UTF-8</div>
+      <div>Spaces: 4</div>
+      <div id="sb-lang-text">Python 3.11</div>
     </div>
   </footer>
 </div>
 
-<!-- ── Developer & Project Modal ── -->
+<!-- ── Developer & System Information Modal ── -->
 <div id="about-overlay">
-  <div class="about-card">
-    <div class="about-hero">
-      <button class="btn-modal-close" onclick="closeAbout()"><i class="fa-solid fa-xmark"></i></button>
-      <div class="about-avatar">KE</div>
-      <div class="about-title">KADHIRAVAN E.G</div>
-      <div class="about-handle">@JOKER-53</div>
-      <div class="about-subtitle">Cyber Security · DevSecOps · Intelligent Tooling</div>
+  <div class="modal-frame">
+    <div class="modal-header-section">
+      <div class="modal-header-title">System &amp; Architecture Overview</div>
+      <button class="modal-close-icon" onclick="closeAbout()"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <div class="modal-nav">
-      <button class="modal-nav-tab active" onclick="switchAboutTab('dev')"><i class="fa-solid fa-user"></i> Developer</button>
-      <button class="modal-nav-tab" onclick="switchAboutTab('features')"><i class="fa-solid fa-layer-group"></i> Architecture</button>
+    <div class="modal-nav-strip">
+      <button class="modal-tab-action active" onclick="switchAboutTab('maintainer')">Maintainer</button>
+      <button class="modal-tab-action" onclick="switchAboutTab('system')">Architecture &amp; Specs</button>
     </div>
-    <div class="modal-content-body" id="about-tab-dev">
-      <div class="detail-item">
-        <i class="fa-solid fa-graduation-cap"></i>
+    <div class="modal-body-section" id="about-tab-maintainer">
+      <div class="info-row">
+        <i class="fa-solid fa-user"></i>
         <div>
-          <div class="detail-label">Institution</div>
-          <div class="detail-val">Sri Shakthi Institute of Engineering and Technology</div>
+          <div class="info-title">Engineer</div>
+          <div class="info-desc"><strong>KADHIRAVAN E.G</strong> (@JOKER-53)</div>
         </div>
       </div>
-      <div class="detail-item">
+      <div class="info-row">
         <i class="fa-solid fa-shield-halved"></i>
         <div>
-          <div class="detail-label">Domain</div>
-          <div class="detail-val">Cyber Security · DevSecOps · System Architecture</div>
+          <div class="info-title">Specialization</div>
+          <div class="info-desc">Cyber Security · DevSecOps · System Architecture · HackTheBox</div>
         </div>
       </div>
-      <div class="detail-item">
-        <i class="fa-solid fa-trophy"></i>
+      <div class="info-row">
+        <i class="fa-solid fa-graduation-cap"></i>
         <div>
-          <div class="detail-label">Security & CTF</div>
-          <div class="detail-val">HackTheBox · Penetration Testing · Vulnerability Research</div>
+          <div class="info-title">Institution</div>
+          <div class="info-desc">Sri Shakthi Institute of Engineering and Technology</div>
         </div>
       </div>
-      <div class="detail-item">
+      <div class="info-row">
         <i class="fa-solid fa-code"></i>
         <div>
-          <div class="detail-label">Core Tech Stack</div>
-          <div class="skill-badges">
-            <span class="skill-tag">Python 3.11</span>
-            <span class="skill-tag">FastAPI</span>
-            <span class="skill-tag">WebSockets</span>
-            <span class="skill-tag">Monaco Editor</span>
-            <span class="skill-tag">Docker</span>
-            <span class="skill-tag">NVIDIA NIM</span>
-            <span class="skill-tag">Linux</span>
+          <div class="info-title">Technologies</div>
+          <div class="tags-row">
+            <span class="tag-badge">Python 3.11</span>
+            <span class="tag-badge">FastAPI</span>
+            <span class="tag-badge">WebSockets</span>
+            <span class="tag-badge">DeepSeek</span>
+            <span class="tag-badge">NVIDIA NIM</span>
+            <span class="tag-badge">Docker</span>
+            <span class="tag-badge">Monaco</span>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="modal-content-body" id="about-tab-features" style="display:none;">
-      <div class="detail-item">
-        <i class="fa-solid fa-play"></i>
+    <div class="modal-body-section" id="about-tab-system" style="display:none;">
+      <div class="info-row">
+        <i class="fa-solid fa-server"></i>
         <div>
-          <div class="detail-label">Interactive Subprocess Sandbox</div>
-          <div class="detail-val">Real-time bi-directional stdin/stdout execution across Python, C, C++, Java, and Node.js using WebSockets.</div>
+          <div class="info-title">Execution Backend</div>
+          <div class="info-desc">Isolated subshell execution with CPU timeouts (10s) and file-size quotas (5MB) preventing runaway tasks.</div>
         </div>
       </div>
-      <div class="detail-item">
-        <i class="fa-solid fa-wand-magic-sparkles"></i>
+      <div class="info-row">
+        <i class="fa-solid fa-microchip"></i>
         <div>
-          <div class="detail-label">AI Code Diagnostics</div>
-          <div class="detail-val">High-precision analysis powered by DeepSeek via NVIDIA NIM for bugs, asymptotic complexity, and one-click fixes.</div>
+          <div class="info-title">Diagnostics Engine</div>
+          <div class="info-desc">NVIDIA NIM inference API running DeepSeek for asymptotic complexity, code refactoring, and AST inspections.</div>
         </div>
       </div>
-      <div class="detail-item">
-        <i class="fa-solid fa-circle-exclamation"></i>
+      <div class="info-row">
+        <i class="fa-solid fa-arrows-spin"></i>
         <div>
-          <div class="detail-label">Multi-pass Static Linting</div>
-          <div class="detail-val">Instant syntax diagnostics and in-editor annotations powered by Pyflakes, GCC, Clang, Javac, and Node.</div>
+          <div class="info-title">Multi-Pass Linter</div>
+          <div class="info-desc">Iterative error-blanking compiler passes reporting complete diagnostic trees in Monaco Editor.</div>
         </div>
       </div>
     </div>
 
-    <div class="modal-footer">
-      <a href="https://github.com/KADHIRAVANEG/IntelligentCompiler" target="_blank">
+    <div class="modal-footer-section">
+      <a class="modal-link" href="https://github.com/KADHIRAVANEG/IntelligentCompiler" target="_blank">
         <i class="fa-brands fa-github"></i> Repository
       </a>
-      <a href="https://intelligentcompiler.onrender.com" target="_blank">
-        <i class="fa-solid fa-globe"></i> Live Cloud Demo
+      <a class="modal-link" href="https://intelligentcompiler.onrender.com" target="_blank">
+        <i class="fa-solid fa-server"></i> Cloud Endpoint
       </a>
     </div>
   </div>
 </div>
 
 <script>
-// ── Dynamic Host Configuration (Protocol-Aware) ──
-const isHttp = location.protocol.startsWith('http');
-const API_BASE = isHttp ? location.origin : 'http://localhost:8000';
-const WS_BASE  = isHttp ? (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host : 'ws://localhost:8000';
+// ── Production & Localhost Router ──
+// When loaded on GitHub Pages (github.io), point to live Render backend
+// When loaded locally (localhost/127.0.0.1), point to local server
+const isLocal = location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+const PROD_HOST = 'intelligentcompiler.onrender.com';
+
+const API_BASE = isLocal ? location.origin : `https://${PROD_HOST}`;
+const WS_BASE  = isLocal 
+  ? (location.protocol === 'https:' ? 'wss:' : 'ws:') + '//' + location.host 
+  : `wss://${PROD_HOST}`;
 
 let ws = null, editor = null, term = null, fitAddon = null;
 let pendingAiFix = "", outputBuffer = "", inputBuffer = "";
 let lintDebounceTimer = null, lintAbortController = null;
-const LINT_DEBOUNCE_MS = 500;
+const LINT_DEBOUNCE_MS = 450;
 const LINTABLE_LANGS = new Set(["python", "c", "cpp", "java", "js"]);
 
 const fileMeta = {
-  python: { ext: "py", name: "main.py", icon: "fa-brands fa-python", label: "Python 3.11" },
-  c:      { ext: "c",  name: "main.c",  icon: "fa-solid fa-c",          label: "C (GCC)" },
-  cpp:    { ext: "cpp",name: "main.cpp",icon: "fa-solid fa-code",       label: "C++ (G++)" },
-  java:   { ext: "java",name: "Main.java",icon: "fa-brands fa-java",   label: "Java (OpenJDK)" },
-  js:     { ext: "js", name: "index.js",icon: "fa-brands fa-js",       label: "JavaScript" },
-  html:   { ext: "html",name: "index.html",icon: "fa-brands fa-html5", label: "HTML5" }
+  python: { ext: "py", name: "main.py", label: "Python 3.11" },
+  c:      { ext: "c",  name: "main.c",  label: "C (GCC)" },
+  cpp:    { ext: "cpp",name: "main.cpp",label: "C++ (G++)" },
+  java:   { ext: "java",name: "Main.java",label: "Java (OpenJDK)" },
+  js:     { ext: "js", name: "index.js",label: "JavaScript (Node)" },
+  html:   { ext: "html",name: "index.html",label: "HTML5 (Web)" }
 };
 
 const boilerplate = {
-  python: `print("=" * 48)\nprint("  Intelligent Compiler — Cloud IDE")\nprint("=" * 48)\n\nname = input("Enter your name: ")\nprint(f"Hello, {name}! Environment is running successfully.")\n`,
-  c: `#include <stdio.h>\n\nint main() {\n    char name[64];\n    printf("Enter your name: ");\n    scanf("%63s", name);\n    printf("Hello, %s! Compiled with GCC.\\n", name);\n    return 0;\n}\n`,
-  cpp: `#include <iostream>\n#include <string>\n\nusing namespace std;\n\nint main() {\n    string name;\n    cout << "Enter your name: ";\n    cin >> name;\n    cout << "Hello, " << name << "! Compiled with G++." << endl;\n    return 0;\n}\n`,
-  java: `import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        System.out.print("Enter your name: ");\n        String name = scanner.nextLine();\n        System.out.println("Hello, " + name + "! Running on Java.");\n    }\n}\n`,
+  python: `print("================================================")\nprint("  Intelligent Compiler — Developer Console")\nprint("================================================")\n\nname = input("Enter your name: ")\nprint(f"Hello, {name}! Environment is running successfully.")\n`,
+  c: `#include <stdio.h>\n\nint main() {\n    char name[64];\n    printf("Enter name: ");\n    scanf("%63s", name);\n    printf("Hello, %s! Compiled with GCC.\\n", name);\n    return 0;\n}\n`,
+  cpp: `#include <iostream>\n#include <string>\n\nusing namespace std;\n\nint main() {\n    string name;\n    cout << "Enter name: ";\n    cin >> name;\n    cout << "Hello, " << name << "! Compiled with G++." << endl;\n    return 0;\n}\n`,
+  java: `import java.util.Scanner;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner scanner = new Scanner(System.in);\n        System.out.print("Enter name: ");\n        String name = scanner.nextLine();\n        System.out.println("Hello, " + name + "! Running on Java.");\n    }\n}\n`,
   js: `console.log("=== Node.js Execution ===");\nconst greeting = "Hello from JavaScript runtime!";\nconsole.log(greeting);\n`,
-  html: `<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <title>Preview Page</title>\n  <style>\n    body { font-family: sans-serif; padding: 30px; background: #0f172a; color: #f8fafc; }\n    h1 { color: #38bdf8; }\n  </style>\n</head>\n<body>\n  <h1>Welcome to Intelligent Compiler</h1>\n  <p>Edit HTML, CSS, and JS live in the editor.</p>\n</body>\n</html>\n`
+  html: `<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n  <title>Preview</title>\n  <style>\n    body { font-family: sans-serif; padding: 24px; background: #09090b; color: #f4f4f5; }\n    h1 { color: #3b82f6; }\n  </style>\n</head>\n<body>\n  <h1>Developer Sandbox</h1>\n  <p>Render interactive HTML, CSS, and JS components.</p>\n</body>\n</html>\n`
 };
 
-// ── Monaco Initialization ──
+// ── Check Backend Health ──
+async function checkBackendHealth() {
+  const dot = document.getElementById("env-dot");
+  const label = document.getElementById("env-label");
+  try {
+    const res = await fetch(`${API_BASE}/`, { method: "HEAD", signal: AbortSignal.timeout(4000) });
+    if (res.ok) {
+      dot.className = "indicator-dot";
+      label.textContent = isLocal ? "Local Server" : "Render Cloud";
+    } else {
+      throw new Error();
+    }
+  } catch {
+    dot.className = "indicator-dot offline";
+    label.textContent = isLocal ? "Local Offline" : "Render Sleeping";
+  }
+}
+
+// ── Monaco Init ──
 require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
 require(['vs/editor/editor.main'], function () {
   editor = monaco.editor.create(document.getElementById('monaco-container'), {
@@ -1160,15 +1084,15 @@ require(['vs/editor/editor.main'], function () {
     language: 'python',
     theme: 'vs-dark',
     automaticLayout: true,
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: "'Fira Code', monospace",
     minimap: { enabled: false },
     scrollBeyondLastLine: false,
     wordWrap: 'on',
     lineNumbers: 'on',
-    roundedSelection: true,
+    roundedSelection: false,
     renderValidationDecorations: 'on',
-    padding: { top: 12, bottom: 12 }
+    padding: { top: 8, bottom: 8 }
   });
 
   editor.onDidChangeModelContent(() => {
@@ -1177,15 +1101,14 @@ require(['vs/editor/editor.main'], function () {
   });
 
   editor.onDidChangeCursorPosition(e => {
-    const pos = e.position;
-    document.getElementById('sb-cursor').textContent = `Ln ${pos.lineNumber}, Col ${pos.column}`;
+    document.getElementById('sb-cursor-pos').textContent = `Ln ${e.position.lineNumber}, Col ${e.position.column}`;
   });
 
-  setTimeout(scheduleLint, 600);
+  setTimeout(scheduleLint, 500);
   setLinterStatus("ready", "Ready");
 });
 
-// ── Linting System ──
+// ── Lint System ──
 function scheduleLint() {
   clearTimeout(lintDebounceTimer);
   lintDebounceTimer = setTimeout(runLint, LINT_DEBOUNCE_MS);
@@ -1217,7 +1140,7 @@ async function runLint() {
   } catch (err) {
     if (err.name === "AbortError") return;
     clearMarkers();
-    setLinterStatus("ready", "Linter offline");
+    setLinterStatus("ready", "Linter ready");
   }
 }
 
@@ -1225,12 +1148,11 @@ function lintHTML() {
   if (!editor) return;
   const code = editor.getValue();
   if (!code.trim()) { clearMarkers(); setLinterStatus("ready", "Clean"); return; }
-  setLinterStatus("busy", "Checking HTML…");
+  setLinterStatus("busy", "Checking…");
 
   const diagnostics = [];
   const lower = code.toLowerCase();
-  const isDoc = lower.includes("<!doctype") || lower.includes("<html");
-  if (isDoc) {
+  if (lower.includes("<!doctype") || lower.includes("<html")) {
     for (const [tag, msg] of [["<!doctype", "Missing <!DOCTYPE html>"], ["<html", "Missing <html>"], ["<head", "Missing <head>"], ["<body", "Missing <body>"], ["<title", "Missing <title>"]]) {
       if (!lower.includes(tag)) diagnostics.push({ line: 1, col: 1, endLine: 1, endCol: 2, message: msg, severity: "warning" });
     }
@@ -1248,7 +1170,7 @@ function applyDiagnostics(diagnostics) {
     endLineNumber: d.endLine || d.line,
     endColumn: d.endCol || (d.col ? d.col + 2 : 2),
     message: d.message,
-    source: "IntelliCompiler"
+    source: "Compiler"
   })));
 
   const countBadge = document.getElementById("problems-count");
@@ -1256,27 +1178,27 @@ function applyDiagnostics(diagnostics) {
   countBadge.textContent = diagnostics.length;
 
   if (diagnostics.length === 0) {
-    countBadge.classList.remove("has-error");
+    countBadge.classList.remove("error");
     setLinterStatus("ready", "0 Errors");
-    tableBody.innerHTML = `<tr><td colspan="3" style="color:var(--text-dim);padding:14px;text-align:center;">No problems detected in code.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="3" style="color:var(--text-dim);padding:14px;text-align:center;">No problems detected.</td></tr>`;
     return;
   }
 
   const hasErr = diagnostics.some(d => d.severity === "error");
-  if (hasErr) countBadge.classList.add("has-error");
-  else countBadge.classList.remove("has-error");
+  if (hasErr) countBadge.classList.add("error");
+  else countBadge.classList.remove("error");
 
-  setLinterStatus(hasErr ? "error" : "busy", `${diagnostics.length} Issue${diagnostics.length > 1 ? 's' : ''}`);
+  setLinterStatus(hasErr ? "error" : "busy", `${diagnostics.length} Problem${diagnostics.length > 1 ? 's' : ''}`);
 
   tableBody.innerHTML = diagnostics.map(d => {
     const isErr = d.severity === "error";
     return `
       <tr onclick="jumpToLine(${d.line})">
         <td class="prob-col-line">Ln ${d.line}</td>
-        <td class="prob-col-icon ${isErr ? 'prob-msg-error' : 'prob-msg-warning'}">
+        <td class="prob-col-sev ${isErr ? 'sev-err' : 'sev-warn'}">
           <i class="fa-solid ${isErr ? 'fa-circle-xmark' : 'fa-triangle-exclamation'}"></i>
         </td>
-        <td class="${isErr ? 'prob-msg-error' : 'prob-msg-warning'}">${escapeHtml(d.message)}</td>
+        <td class="${isErr ? 'sev-err' : 'sev-warn'}">${escapeHtml(d.message)}</td>
       </tr>
     `;
   }).join("");
@@ -1293,14 +1215,14 @@ function clearMarkers() {
   if (!editor) return;
   monaco.editor.setModelMarkers(editor.getModel(), "intellicompiler", []);
   document.getElementById("problems-count").textContent = "0";
-  document.getElementById("problems-count").classList.remove("has-error");
-  document.querySelector("#problems-table tbody").innerHTML = `<tr><td colspan="3" style="color:var(--text-dim);padding:14px;text-align:center;">No problems detected in code.</td></tr>`;
+  document.getElementById("problems-count").classList.remove("error");
+  document.querySelector("#problems-table tbody").innerHTML = `<tr><td colspan="3" style="color:var(--text-dim);padding:14px;text-align:center;">No problems detected.</td></tr>`;
 }
 
 function setLinterStatus(type, text) {
-  const dot = document.getElementById("sb-dot");
-  dot.className = `sb-dot ${type}`;
-  document.getElementById("sb-linter-text").textContent = text;
+  const pip = document.getElementById("sb-pip");
+  pip.className = `status-pip ${type}`;
+  document.getElementById("sb-status-text").textContent = text;
 }
 
 // ── Persistence ──
@@ -1316,13 +1238,15 @@ function loadCode() {
 
 // ── Execution & Terminal ──
 window.onload = function () {
+  checkBackendHealth();
+
   term = new Terminal({
     cursorBlink: true,
     theme: {
-      background: '#070a10',
-      foreground: '#38bdf8',
-      cursor: '#f8fafc',
-      selectionBackground: '#1e293b'
+      background: '#070708',
+      foreground: '#e4e4e7',
+      cursor: '#ffffff',
+      selectionBackground: '#27272a'
     },
     fontSize: 13,
     fontFamily: "'Fira Code', monospace",
@@ -1335,8 +1259,7 @@ window.onload = function () {
   term.open(document.getElementById('terminal'));
   fitAddon.fit();
 
-  term.writeln("\x1b[38;2;148;163;184mIntelligent Compiler — Interactive Execution Environment\x1b[0m");
-  term.writeln("\x1b[38;2;100;116;139mType your program input here when prompted by your code.\x1b[0m\r\n");
+  term.writeln("\x1b[38;2;113;113;122m[Console Ready] Interactive bi-directional stream active.\x1b[0m\r\n");
 
   window.addEventListener('resize', () => { if (fitAddon) fitAddon.fit(); });
 
@@ -1378,17 +1301,16 @@ function runCode() {
   const runBtn = document.getElementById("run-btn");
   const code = editor.getValue();
   const lang = document.getElementById("lang").value;
-  const fixBtn = document.getElementById("header-fix-btn");
+  const patchBtn = document.getElementById("btn-apply-patch");
 
-  fixBtn.style.display = "none";
+  patchBtn.style.display = "none";
   pendingAiFix = "";
   outputBuffer = "";
   inputBuffer = "";
 
   if (lang === "html") {
     switchDockTab('preview');
-    const iframe = document.getElementById("preview-iframe");
-    iframe.srcdoc = code;
+    document.getElementById("preview-frame").srcdoc = code;
     return;
   }
 
@@ -1398,7 +1320,7 @@ function runCode() {
   if (ws && ws.readyState === WebSocket.OPEN) ws.close();
 
   runBtn.disabled = true;
-  runBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Executing…';
+  runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Running…';
 
   try {
     ws = new WebSocket(`${WS_BASE}/ws`);
@@ -1406,7 +1328,7 @@ function runCode() {
       ws.send(JSON.stringify({ lang, code }));
       if (fitAddon) fitAddon.fit();
       runBtn.disabled = false;
-      runBtn.innerHTML = '<i class="fa-solid fa-play"></i> Run <span class="kbd-shortcut">Ctrl+↵</span>';
+      runBtn.innerHTML = '<i class="fa-solid fa-play" style="font-size:0.7rem;"></i> Run <span class="key-pill">Ctrl+↵</span>';
     };
     ws.onmessage = e => {
       outputBuffer += e.data;
@@ -1414,34 +1336,35 @@ function runCode() {
     };
     ws.onerror = () => {
       runBtn.disabled = false;
-      runBtn.innerHTML = '<i class="fa-solid fa-play"></i> Run <span class="kbd-shortcut">Ctrl+↵</span>';
+      runBtn.innerHTML = '<i class="fa-solid fa-play" style="font-size:0.7rem;"></i> Run <span class="key-pill">Ctrl+↵</span>';
     };
     ws.onclose = () => {
       runBtn.disabled = false;
-      runBtn.innerHTML = '<i class="fa-solid fa-play"></i> Run <span class="kbd-shortcut">Ctrl+↵</span>';
+      runBtn.innerHTML = '<i class="fa-solid fa-play" style="font-size:0.7rem;"></i> Run <span class="key-pill">Ctrl+↵</span>';
     };
-  } catch (err) {
+  } catch {
     runBtn.disabled = false;
-    runBtn.innerHTML = '<i class="fa-solid fa-play"></i> Run <span class="kbd-shortcut">Ctrl+↵</span>';
+    runBtn.innerHTML = '<i class="fa-solid fa-play" style="font-size:0.7rem;"></i> Run <span class="key-pill">Ctrl+↵</span>';
   }
 }
 
-// ── AI Copilot Assistant ──
-async function askAI() {
+// ── Inspector / AI Diagnostics ──
+async function triggerDiagnostics() {
+  ensureSidebarOpen();
   const aiBtn = document.getElementById("ai-btn");
-  const aiOut = document.getElementById("ai-out");
-  const fixBtn = document.getElementById("header-fix-btn");
+  const body = document.getElementById("inspector-body");
+  const patchBtn = document.getElementById("btn-apply-patch");
   const code = editor.getValue();
   const lang = document.getElementById("lang").value;
   const output = outputBuffer || "No output generated.";
 
   aiBtn.disabled = true;
-  aiBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Analyzing…';
-  aiOut.innerHTML = `
-    <div class="ai-empty-state">
-      <div class="ai-empty-icon"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
-      <h4>Deep Diagnostics Running</h4>
-      <p>Consulting DeepSeek via NVIDIA NIM for code inspection, complexity profiling, and automated patch generation…</p>
+  aiBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analyzing…';
+  body.innerHTML = `
+    <div class="empty-inspector-state">
+      <div class="empty-box-icon"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
+      <h4>Executing Telemetry Analysis</h4>
+      <p>Querying backend diagnostics engine for asymptotic complexity and code verification…</p>
     </div>
   `;
 
@@ -1453,60 +1376,84 @@ async function askAI() {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    const aiText = data.suggestion || "No response received.";
+    const text = data.suggestion || "No diagnostic response generated.";
 
-    const matches = [...aiText.matchAll(/```(?:\w+)?\n([\s\S]*?)```/g)];
+    const matches = [...text.matchAll(/```(?:\w+)?\n([\s\S]*?)```/g)];
     if (matches.length > 0) {
       pendingAiFix = matches[matches.length - 1][1].trim();
-      fixBtn.style.display = "inline-flex";
-      fixBtn.innerHTML = '<i class="fa-solid fa-check"></i> Apply Fix';
+      patchBtn.style.display = "inline-flex";
+      patchBtn.innerHTML = '<i class="fa-solid fa-check"></i> Apply Patch';
     } else {
       pendingAiFix = "";
-      fixBtn.style.display = "none";
+      patchBtn.style.display = "none";
     }
 
-    aiOut.innerHTML = DOMPurify.sanitize(marked.parse(aiText));
+    body.innerHTML = DOMPurify.sanitize(marked.parse(text));
   } catch (err) {
-    aiOut.innerHTML = `
-      <div style="color:#f87171;padding:16px;text-align:center;">
-        <i class="fa-solid fa-triangle-exclamation" style="font-size:1.8rem;margin-bottom:8px;"></i>
-        <h4>Analysis Request Failed</h4>
-        <p style="font-size:0.8rem;color:var(--text-dim);">${escapeHtml(err.message)}</p>
+    body.innerHTML = `
+      <div style="color:var(--status-red);padding:14px;text-align:center;">
+        <i class="fa-solid fa-triangle-exclamation" style="font-size:1.5rem;margin-bottom:6px;"></i>
+        <h4>Diagnostics Unavailable</h4>
+        <p style="font-size:0.78rem;color:var(--text-dim);">${escapeHtml(err.message)}</p>
       </div>
     `;
   } finally {
     aiBtn.disabled = false;
-    aiBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> AI Assistant <span class="kbd-shortcut">Ctrl+I</span>';
+    aiBtn.innerHTML = '<i class="fa-solid fa-microchip"></i> Diagnostics <span class="key-pill">Ctrl+I</span>';
   }
 }
 
 function applyFix() {
   if (!pendingAiFix || !editor) return;
   editor.setValue(pendingAiFix);
-  const fixBtn = document.getElementById("header-fix-btn");
-  fixBtn.innerHTML = '<i class="fa-solid fa-circle-check"></i> Applied!';
-  setTimeout(() => { fixBtn.style.display = "none"; }, 2000);
+  const patchBtn = document.getElementById("btn-apply-patch");
+  patchBtn.innerHTML = '<i class="fa-solid fa-check-double"></i> Applied';
+  setTimeout(() => { patchBtn.style.display = "none"; }, 1800);
   saveCode();
   scheduleLint();
 }
 
-// ── Dock Tabs & UI Navigation ──
+function toggleSidebar() {
+  const panel = document.getElementById("inspector-panel");
+  const splitter = document.getElementById("splitter-v");
+  const btn = document.getElementById("toggle-sidebar-btn");
+  const isHidden = panel.classList.toggle("collapsed");
+  splitter.style.display = isHidden ? "none" : "block";
+  btn.classList.toggle("active", !isHidden);
+  if (editor) editor.layout();
+  if (fitAddon) fitAddon.fit();
+}
+
+function ensureSidebarOpen() {
+  const panel = document.getElementById("inspector-panel");
+  const splitter = document.getElementById("splitter-v");
+  const btn = document.getElementById("toggle-sidebar-btn");
+  if (panel.classList.contains("collapsed")) {
+    panel.classList.remove("collapsed");
+    splitter.style.display = "block";
+    btn.classList.add("active");
+    if (editor) editor.layout();
+    if (fitAddon) fitAddon.fit();
+  }
+}
+
+// ── Dock Tab Controls ──
 function switchDockTab(tab) {
-  document.querySelectorAll('.dock-tab').forEach(b => b.classList.remove('active'));
-  document.getElementById('terminal-wrapper').style.display = 'none';
-  document.getElementById('preview-wrapper').style.display = 'none';
-  document.getElementById('problems-wrapper').style.display = 'none';
+  document.querySelectorAll('.dock-tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('term-view').style.display = 'none';
+  document.getElementById('preview-view').style.display = 'none';
+  document.getElementById('problems-view').style.display = 'none';
 
   if (tab === 'terminal') {
-    document.getElementById('tab-btn-terminal').classList.add('active');
-    document.getElementById('terminal-wrapper').style.display = 'block';
+    document.getElementById('btn-tab-terminal').classList.add('active');
+    document.getElementById('term-view').style.display = 'block';
     if (fitAddon) fitAddon.fit();
   } else if (tab === 'preview') {
-    document.getElementById('tab-btn-preview').classList.add('active');
-    document.getElementById('preview-wrapper').style.display = 'block';
+    document.getElementById('btn-tab-preview').classList.add('active');
+    document.getElementById('preview-view').style.display = 'block';
   } else if (tab === 'problems') {
-    document.getElementById('tab-btn-problems').classList.add('active');
-    document.getElementById('problems-wrapper').style.display = 'block';
+    document.getElementById('btn-tab-problems').classList.add('active');
+    document.getElementById('problems-view').style.display = 'block';
   }
 }
 
@@ -1514,15 +1461,12 @@ function changeLanguage() {
   const lang = document.getElementById("lang").value;
   const meta = fileMeta[lang] || fileMeta.python;
 
-  document.getElementById("crumb-filename").textContent = meta.name;
-  document.getElementById("crumb-icon").className = meta.icon;
-  document.getElementById("tab-filename").textContent = meta.name;
-  document.getElementById("tab-icon").className = meta.icon;
-  document.getElementById("sb-lang-label").textContent = meta.label;
+  document.getElementById("tab-file-name").textContent = meta.name;
+  document.getElementById("sb-lang-text").textContent = meta.label;
 
   const isHtml = lang === "html";
-  document.getElementById("tab-btn-preview").style.display = isHtml ? "inline-flex" : "none";
-  document.getElementById("view-tab-btn").style.display = isHtml ? "inline-flex" : "none";
+  document.getElementById("btn-tab-preview").style.display = isHtml ? "inline-flex" : "none";
+  document.getElementById("btn-popout-preview").style.display = isHtml ? "inline-flex" : "none";
 
   if (editor) {
     const langMap = { python: "python", c: "c", cpp: "cpp", java: "java", js: "javascript", html: "html" };
@@ -1541,7 +1485,7 @@ function clearTerminal() {
 function copyOutput() {
   if (outputBuffer.trim()) {
     navigator.clipboard.writeText(outputBuffer);
-    setLinterStatus("ready", "Output copied!");
+    setLinterStatus("ready", "Copied to clipboard");
     setTimeout(() => setLinterStatus("ready", "Ready"), 2000);
   }
 }
@@ -1592,7 +1536,7 @@ function uploadFile(event) {
 // ── Drag & Drop ──
 function initDragDrop() {
   const overlay = document.getElementById("drop-overlay");
-  const el = document.getElementById("editor-pane");
+  const el = document.getElementById("editor-container");
   let counter = 0;
 
   el.addEventListener("dragenter", e => {
@@ -1633,17 +1577,17 @@ function initDragDrop() {
   });
 }
 
-// ── Splitter Resizing ──
+// ── Splitters ──
 function initSplitters() {
-  const editorPane = document.getElementById("editor-pane");
-  const dockPane = document.getElementById("dock-pane");
+  const editorPane = document.getElementById("editor-container");
+  const dockPane = document.getElementById("dock-container");
   const splitterH = document.getElementById("splitter-h");
   const splitterV = document.getElementById("splitter-v");
-  const centerCol = document.getElementById("center-column");
-  const aiSidebar = document.getElementById("ai-sidebar");
+  const mainCol = document.getElementById("dash-main-column");
+  const inspector = document.getElementById("inspector-panel");
 
   let isDraggingH = false, startY = 0, startEditorH = 0, startDockH = 0;
-  let isDraggingV = false, startX = 0, startCenterW = 0, startAiW = 0;
+  let isDraggingV = false, startX = 0, startMainW = 0, startInspW = 0;
 
   splitterH.addEventListener("mousedown", e => {
     isDraggingH = true;
@@ -1659,8 +1603,8 @@ function initSplitters() {
   splitterV.addEventListener("mousedown", e => {
     isDraggingV = true;
     startX = e.clientX;
-    startCenterW = centerCol.getBoundingClientRect().width;
-    startAiW = aiSidebar.getBoundingClientRect().width;
+    startMainW = mainCol.getBoundingClientRect().width;
+    startInspW = inspector.getBoundingClientRect().width;
     splitterV.classList.add("dragging");
     document.body.style.cursor = "ew-resize";
     document.body.style.userSelect = "none";
@@ -1679,8 +1623,8 @@ function initSplitters() {
     }
     if (isDraggingV) {
       const delta = startX - e.clientX;
-      const newAiW = Math.max(260, Math.min(startAiW + delta, 600));
-      aiSidebar.style.flex = `0 0 ${newAiW}px`;
+      const newInspW = Math.max(260, Math.min(startInspW + delta, 650));
+      inspector.style.flex = `0 0 ${newInspW}px`;
       if (editor) editor.layout();
       if (fitAddon) fitAddon.fit();
     }
@@ -1713,7 +1657,7 @@ function initKeyboardShortcuts() {
     }
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "i") {
       e.preventDefault();
-      askAI();
+      triggerDiagnostics();
     }
     if (e.key === "Escape") {
       closeAbout();
@@ -1725,9 +1669,9 @@ function initKeyboardShortcuts() {
 function openAbout() { document.getElementById("about-overlay").classList.add("open"); }
 function closeAbout() { document.getElementById("about-overlay").classList.remove("open"); }
 function switchAboutTab(tab) {
-  document.querySelectorAll('.modal-nav-tab').forEach(b => b.classList.remove('active'));
-  document.getElementById('about-tab-dev').style.display = tab === 'dev' ? 'block' : 'none';
-  document.getElementById('about-tab-features').style.display = tab === 'features' ? 'block' : 'none';
+  document.querySelectorAll('.modal-tab-action').forEach(b => b.classList.remove('active'));
+  document.getElementById('about-tab-maintainer').style.display = tab === 'maintainer' ? 'block' : 'none';
+  document.getElementById('about-tab-system').style.display = tab === 'system' ? 'block' : 'none';
   event.currentTarget.classList.add('active');
 }
 
