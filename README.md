@@ -16,7 +16,7 @@ A modern web-based intelligent compiler with real-time compilation, interactive 
 
 - **Frontend:** HTML5, CSS3, JavaScript, Monaco Editor, XTerm.js
 - **Backend:** FastAPI, WebSockets, Python 3.11+
-- **AI Integration:** NVIDIA NIM (`deepseek-ai/deepseek-v4-pro-0813`) via OpenAI-compatible API
+- **AI Integration:** NVIDIA NIM (`google/gemma-3-12b-it` with dynamic fallback cascade) via OpenAI-compatible API
 - **Containerization:** Docker
 
 ## 📁 Project Structure
