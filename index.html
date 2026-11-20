@@ -1063,7 +1063,7 @@ async function checkBackendHealth() {
   const dot = document.getElementById("env-dot");
   const label = document.getElementById("env-label");
   try {
-    const res = await fetch(`${API_BASE}/`, { method: "HEAD", signal: AbortSignal.timeout(4000) });
+    const res = await fetch(`${API_BASE}/`, { method: "GET", signal: AbortSignal.timeout(5000) });
     if (res.ok) {
       dot.className = "indicator-dot";
       label.textContent = isLocal ? "Local Server" : "Render Cloud";
