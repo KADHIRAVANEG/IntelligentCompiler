@@ -25,7 +25,7 @@ app.add_middleware(
 # Get your free key at https://build.nvidia.com  (no credit card needed)
 # Set env var:  NVIDIA_API_KEY=nvapi-xxxxxxxxxxxxxxxxxxxx
 NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
-NIM_MODEL = os.getenv("NIM_MODEL", "deepseek-ai/deepseek-v4-pro-0813")
+NIM_MODEL = os.getenv("NIM_MODEL", "meta/llama-3.1-8b-instruct")
 
 def get_nim_client():
     key = os.getenv("NVIDIA_API_KEY")
@@ -68,7 +68,7 @@ class LintRequest(BaseModel):
 #  ROUTES
 # ─────────────────────────────────────────────
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 async def serve_ui():
     return FileResponse("index.html")
 
@@ -131,7 +131,20 @@ Categories to choose from: [Security] [Performance] [Readability] [Edge Case] [M
         )
         return {"suggestion": response.choices[0].message.content}
     except Exception as e:
-        return {"suggestion": f"AI Error: {str(e)}"}
+        err_msg = str(e)
+        # Handle deprecated/retired model IDs by attempting fallback to stable Llama 3.1
+        if ("410" in err_msg or "model_not_found" in err_msg) and NIM_MODEL != "meta/llama-3.1-8b-instruct":
+            try:
+                fallback_res = client.chat.completions.create(
+                    model="meta/llama-3.1-8b-instruct",
+                    messages=[{"role": "user", "content": prompt}],
+                    max_tokens=2048,
+                    temperature=0.2,
+                )
+                return {"suggestion": fallback_res.choices[0].message.content}
+            except Exception as e2:
+                return {"suggestion": f"AI Error: {str(e2)}"}
+        return {"suggestion": f"AI Error: {err_msg}"}
 
 
 @app.post("/lint")
