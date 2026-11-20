@@ -25,17 +25,16 @@ app.add_middleware(
 # Get your free key at https://build.nvidia.com  (no credit card needed)
 # Set env var:  NVIDIA_API_KEY=nvapi-xxxxxxxxxxxxxxxxxxxx
 NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
-if not NVIDIA_API_KEY:
-    raise RuntimeError("NVIDIA_API_KEY is missing. Get a free key at https://build.nvidia.com")
+NIM_MODEL = os.getenv("NIM_MODEL", "deepseek-ai/deepseek-v4-pro-0813")
 
-# OpenAI-compatible client pointed at NVIDIA NIM
-nim_client = OpenAI(
-    base_url="https://integrate.api.nvidia.com/v1",
-    api_key=NVIDIA_API_KEY,
-)
-
-# Best free coding model on NIM — swap to any NIM model string to change
-NIM_MODEL = "deepseek-ai/deepseek-v4-pro-0813"
+def get_nim_client():
+    key = os.getenv("NVIDIA_API_KEY")
+    if not key:
+        return None
+    return OpenAI(
+        base_url="https://integrate.api.nvidia.com/v1",
+        api_key=key,
+    )
 
 # --- SECURITY: Resource limits applied to every subprocess ---
 def set_resource_limits():
@@ -76,6 +75,13 @@ async def serve_ui():
 
 @app.post("/analyze")
 async def analyze_code(req: AnalyzeRequest):
+    client = get_nim_client()
+    if not client:
+        return {
+            "suggestion": "AI Error: NVIDIA_API_KEY environment variable is not configured. "
+                          "Get a free key at https://build.nvidia.com and set NVIDIA_API_KEY."
+        }
+
     prompt = f"""
 You are a senior software engineer and code reviewer. Analyze the code below with precision.
 Language: {req.lang}
@@ -117,7 +123,7 @@ Each must be actionable and reference the actual code:
 Categories to choose from: [Security] [Performance] [Readability] [Edge Case] [Memory] [Error Handling] [Best Practice]
 """
     try:
-        response = nim_client.chat.completions.create(
+        response = client.chat.completions.create(
             model=NIM_MODEL,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=2048,
@@ -578,35 +584,4 @@ async def ws_handler(ws: WebSocket):
         try:
             await ws.send_text(f"\n[Internal error: {str(e)}]")
         except Exception:
-            pass    # Pass 2: runtime errors
-    if not any(d["severity"] == "error" for d in diagnostics):
-        path2 = os.path.join(tempfile.gettempdir(), f"lint_{uuid.uuid4().hex}.js")
-        with open(path2, "w") as f:
-            f.write(code)
-        try:
-            proc2 = await asyncio.create_subprocess_exec(
-                "node", path2,
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            )
-            _, stderr2 = await asyncio.wait_for(proc2.communicate(), timeout=3)
-            raw2 = stderr2.decode(errors="replace")
-            pat = re.compile(
-                r":(\d+)\n[^\n]*\n[ \t]*\^[ \t]*\n+(ReferenceError|TypeError|RangeError):\s*([^\n]+)"
-            )
-            for m in pat.finditer(raw2):
-                line = int(m.group(1))
-                msg  = f"{m.group(2)}: {m.group(3).strip()}"
-                key  = (line, msg)
-                if key not in seen:
-                    seen.add(key)
-                    diagnostics.append({
-                        "line": line, "col": 1,
-                        "endLine": line, "endCol": 2,
-                        "message": msg, "severity": "error",
-                    })
-        except asyncio.TimeoutError:
             pass
-        except Exception:
-            pass
-        finally:
-            if os.path.exists(path2): os.remove(path2)
