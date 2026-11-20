@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, Request
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -10,6 +10,8 @@ import os
 import shutil
 import re
 import resource
+import time
+from collections import defaultdict
 from openai import OpenAI
 
 app = FastAPI()
@@ -20,6 +22,33 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# --- SECURITY: Safe Subprocess Environment ---
+# Exclude server secrets (e.g. NVIDIA_API_KEY) from guest code
+SAFE_ENV = {
+    "PATH": os.getenv("PATH", "/usr/local/bin:/usr/bin:/bin"),
+    "PYTHONUNBUFFERED": "1",
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8",
+}
+
+# --- RATE LIMITING ---
+class IPRateLimiter:
+    def __init__(self, max_requests: int, window_seconds: int):
+        self.max_requests = max_requests
+        self.window = window_seconds
+        self.history = defaultdict(list)
+
+    def is_allowed(self, ip: str) -> bool:
+        now = time.time()
+        self.history[ip] = [t for t in self.history[ip] if now - t < self.window]
+        if len(self.history[ip]) >= self.max_requests:
+            return False
+        self.history[ip].append(now)
+        return True
+
+ai_limiter = IPRateLimiter(max_requests=10, window_seconds=60)     # 10 AI requests / minute / IP
+ws_limiter = IPRateLimiter(max_requests=40, window_seconds=60)     # 40 compiler runs / minute / IP
 
 # --- CONFIGURATION ---
 # Get your free key at https://build.nvidia.com  (no credit card needed)
@@ -74,7 +103,14 @@ async def serve_ui():
 
 
 @app.post("/analyze")
-async def analyze_code(req: AnalyzeRequest):
+async def analyze_code(req: AnalyzeRequest, request: Request):
+    client_ip = request.client.host if request.client else "unknown"
+    if not ai_limiter.is_allowed(client_ip):
+        return {
+            "suggestion": "Rate Limit Exceeded: Maximum 10 AI diagnostics per minute per IP. "
+                          "Please wait a few moments before requesting another analysis."
+        }
+
     client = get_nim_client()
     if not client:
         return {
@@ -428,13 +464,19 @@ async def _lint_java(code: str):
 #  WEBSOCKET EXECUTION (with security fixes)
 # ─────────────────────────────────────────────
 
-async def run_interactive_process(ws: WebSocket, cmd, cwd=None):
+async def run_interactive_process(ws: WebSocket, cmd, cwd=None, env=None):
+    process_env = SAFE_ENV.copy()
+    if env:
+        process_env.update(env)
+
+    start_time = time.perf_counter()
     proc = await asyncio.create_subprocess_exec(
         *cmd,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         cwd=cwd,
+        env=process_env,
         preexec_fn=set_resource_limits,
     )
 
@@ -472,6 +514,9 @@ async def run_interactive_process(ws: WebSocket, cmd, cwd=None):
         if proc.returncode is None:
             proc.kill()
         await proc.wait()
+        duration = time.perf_counter() - start_time
+        exit_code = proc.returncode if proc.returncode is not None else -1
+        await ws.send_text(f"\n\x1b[38;2;113;113;122m[Process finished with exit code {exit_code} in {duration:.2f}s]\x1b[0m\n")
 
 
 async def run_python(ws: WebSocket, code: str):
@@ -580,6 +625,13 @@ async def run_js(ws: WebSocket, code: str):
 
 @app.websocket("/ws")
 async def ws_handler(ws: WebSocket):
+    client_ip = ws.client.host if ws.client else "unknown"
+    if not ws_limiter.is_allowed(client_ip):
+        await ws.accept()
+        await ws.send_text("\n\x1b[31m[Rate Limit Exceeded: Maximum 40 runs per minute per IP]\x1b[0m\n")
+        await ws.close()
+        return
+
     await ws.accept()
     try:
         first = await ws.receive_json()
